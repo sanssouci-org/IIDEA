@@ -11,6 +11,15 @@ matchMatrixBiofun(geneNames, biofun)
 
 \item{biofun}{matrix for gene set}
 }
+\value{
+list for warnings
+}
 \description{
 Check if genes in gene set match with a gene set list
+}
+\details{
+Check if there is at least one gene in gene set match with genes
+in expression matrix.  The color of the message means:
+green: non genes match
+blue: everything is ok. Thanks ;)
 }

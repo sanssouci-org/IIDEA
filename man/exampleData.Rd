@@ -14,3 +14,6 @@ Create example data set from the package sanssouci.data.
 This dataframe aims at exporting in IIDEA (not to be used by IIDEA as public
 data set)
 }
+\examples{
+exampleData()
+}

@@ -7,7 +7,7 @@
 cleanGo.GS(go.gs)
 }
 \arguments{
-\item{go.gs}{}
+\item{go.gs}{data frame from go.gs}
 }
 \value{
 a list of cleaned data set

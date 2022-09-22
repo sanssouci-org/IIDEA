@@ -1,6 +1,6 @@
 #' Clean go.gs data sets. Not used
 #'
-#' @param go.gs
+#' @param go.gs data frame from go.gs
 #'
 #' @return a list of cleaned data set
 cleanGo.GS <- function(go.gs) {
@@ -128,15 +128,13 @@ cleanBiofun <- function(biofun){
 #' @param geneNames vector of genes names (vector of charactors)
 #' @param biofun matrix for gene set
 #'
-#' @return
-#' @export
+#' @return list for warnings
 #'
-#' #' @details Check if there is at least one gene in gene set match with genes
+#' @details Check if there is at least one gene in gene set match with genes
 #' in expression matrix.  The color of the message means:
 #' green: non genes match
 #' blue: everything is ok. Thanks ;)
 #'
-#' @examples
 matchMatrixBiofun <- function(geneNames, biofun){
   text = ""
   boolValidation = TRUE

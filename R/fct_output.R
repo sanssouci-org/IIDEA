@@ -7,11 +7,17 @@
 #' @export
 #'
 #' @import sanssouci.data
+#' @import sanssouci
 #'
 #' @examples
 #' exampleData()
 exampleData <- function() {
-
+  if (!exists("expr_ALL")) {
+    data(expr_ALL, package = "sanssouci.data")
+  }
+  if (!exists("expr_ALL_GO")) {
+    data(expr_ALL_GO, package = "sanssouci.data")
+  }
   #### expression matrix
   data <- list()
   data$matrix <- expr_ALL
@@ -46,13 +52,9 @@ exampleData <- function() {
 #' @param vector a vector of gene names use for the gene networks from string-db.
 #'
 #' @return a character, the url for string-db.org
-#'
-#' @examples
-#'
-#' UrlStringdbGrah("%0DENSG00000176105%0DNA")
-UrlStringdbGrah <- function(vector){
+UrlStringdbGrah <- function(vector) {
   vector[2:length(vector)] <- paste0("%0d", vector[2:length(vector)])
-  url <- paste("https://string-db.org/api/image/network?identifiers=", paste(vector, collapse = ""), "&species=9606", sep="")
+  url <- paste("https://string-db.org/api/image/network?identifiers=", paste(vector, collapse = ""), "&species=9606", sep = "")
   return(url)
 }
 
@@ -61,13 +63,10 @@ UrlStringdbGrah <- function(vector){
 #' @param name charactor of Gene Ontology name.
 #'
 #' @return charactor of html balise
-#'
-#' @examples
-#' addUrlLink("GO:0018108")
-addUrlLink <- function(name){
-  if(grepl("GO:\\d+", name)){ # met ce lien spécifique si la structure GO:000000000... est dans le nom
-    url <- paste("https://www.ebi.ac.uk/QuickGO/term/",str_extract_all(name, "GO:\\d+"), sep="")
-    url <- paste('<a target="_blanck" href="', url, '" >',name, '</a>', sep="")
+addUrlLink <- function(name) {
+  if (grepl("GO:\\d+", name)) { # met ce lien spécifique si la structure GO:000000000... est dans le nom
+    url <- paste("https://www.ebi.ac.uk/QuickGO/term/", str_extract_all(name, "GO:\\d+"), sep = "")
+    url <- paste('<a target="_blanck" href="', url, '" >', name, "</a>", sep = "")
     return(url)
   } else {
     return(name)
@@ -80,21 +79,26 @@ addUrlLink <- function(name){
 #' @param maxlogp numeric the maximum of -log(p-values)
 #'
 #' @return data.frame with the new labels and breaks for the Volcano Plot y-axis
-#'
-#' @examples
-#' thrYaxis(sort(runif(100)), 15)
-thrYaxis <- function(thr, maxlogp){
-  if(maxlogp == Inf){
+thrYaxis <- function(thr, maxlogp) {
+  if (maxlogp == Inf) {
     maxlogp <- 16
   }
-  df1 <- data.frame(num = 1:length(thr)-1, pvalue=-log10(thr))
-  df2 <- data.frame(df1[c(1),])
-  valeurTest <- df2[c(dim(df2)[1]),"pvalue"]
-  for (i in 1:dim(df1)[1]){
-    mod <- if(df1[i,"num"] < 100){ 1} else if(df1[i,"num"] < 500){ 10} else if(df1[i,"num"] < 1000){50}else{100}
-    if (valeurTest - df1[i,"pvalue"] > 0.3*maxlogp/12.5 & df1[i,"num"]%%mod == 0){
-      df2 <- rbind(df2, (df1[i,]))
-      valeurTest <- df1[i,"pvalue"]
+  df1 <- data.frame(num = 1:length(thr) - 1, pvalue = -log10(thr))
+  df2 <- data.frame(df1[c(1), ])
+  valeurTest <- df2[c(dim(df2)[1]), "pvalue"]
+  for (i in 1:dim(df1)[1]) {
+    mod <- if (df1[i, "num"] < 100) {
+      1
+    } else if (df1[i, "num"] < 500) {
+      10
+    } else if (df1[i, "num"] < 1000) {
+      50
+    } else {
+      100
+    }
+    if (valeurTest - df1[i, "pvalue"] > 0.3 * maxlogp / 12.5 & df1[i, "num"] %% mod == 0) {
+      df2 <- rbind(df2, (df1[i, ]))
+      valeurTest <- df1[i, "pvalue"]
     }
   }
   return(df2)

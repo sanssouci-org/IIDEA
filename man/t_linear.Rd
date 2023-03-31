@@ -20,5 +20,4 @@ Imported from sanssouci package
 m <- 10
 alpha <- 0.05
 thr <- t_linear(alpha, 1:m, m)
-t_inv_linear(thr[3], 3, m)
 }

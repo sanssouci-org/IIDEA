@@ -44,20 +44,3 @@ If \code{all} is \code{FALSE} (the default), only the value of the bound is retu
 \description{
 Imported from sanssouci package.
 }
-\examples{
-
-# Generate Gaussian data and perform multiple tests
-obj <- SansSouciSim(m = 502, rho = 0.5, n = 100, pi0 = 0.8, SNR = 3, prob = 0.5)
-res <- fit(obj, B = 100, alpha = 0.1)
-
-# post hoc bound on the set of all hypotheses
-predict(res)
-
-# idem for all possible subsets (sorted by p-value)
-bounds <- predict(res, all = TRUE)
-head(bounds)
-
-# post hoc bound on a subset
-S <- which(pValues(res) < 0.01)
-predict(res, S)
-}

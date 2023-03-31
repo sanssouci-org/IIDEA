@@ -52,13 +52,13 @@ readCSV_sep <- function(file, ...) {
 #' blue: everything is ok. Thanks ;)
 #'
 #' @export
-cleanMatrix <- function(matrixFunc){
-  text = ""
-  boolValidation = TRUE
-  color = "color:blue"
+cleanMatrix <- function(matrixFunc) {
+  text <- ""
+  boolValidation <- TRUE
+  color <- "color:blue"
 
-  for (i in 1:length(matrixFunc)){
-    if(!is.numeric(matrixFunc[,i])){
+  for (i in 1:length(matrixFunc)) {
+    if (!is.numeric(matrixFunc[, i])) {
       text <- "The matrix contains textual variable. We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
@@ -66,18 +66,18 @@ cleanMatrix <- function(matrixFunc){
     }
   }
 
-  colnam <- colnames(matrixFunc) #Control colnames(matrix)
+  colnam <- colnames(matrixFunc) # Control colnames(matrix)
   valueColnam <- sort(unique(colnam))
-  if(length(valueColnam)==2){
-    if(any(valueColnam != c("0","1"))){
-      colnam[ colnam == valueColnam[1] ] <- 0
-      colnam[ colnam == valueColnam[2] ] <- 1
+  if (length(valueColnam) == 2) {
+    if (any(valueColnam != c("0", "1"))) {
+      colnam[colnam == valueColnam[1]] <- 0
+      colnam[colnam == valueColnam[2]] <- 1
       colnames(matrixFunc) <- colnam
-      text <- paste("The colnames of your matrix does not contains 0 or 1.We consider that", valueColnam[1] ,"becomes 0 and ", valueColnam[2]," becomes 1")
+      text <- paste("The colnames of your matrix does not contains 0 or 1.We consider that", valueColnam[1], "becomes 0 and ", valueColnam[2], " becomes 1")
       boolValidation <- TRUE
       color <- "color:orange"
     }
-  }else{
+  } else {
     boolValidation <- FALSE
     color <- "color:red"
     text <- "The column names of your data contains more (or less) than 2 categories. Please use {0, 1} for the colnames of your matrix."
@@ -98,15 +98,14 @@ cleanMatrix <- function(matrixFunc){
 #' blue: everything is ok. Thanks ;)
 #'
 #' @export
-cleanBiofun <- function(biofun){
-
-  text = ""
-  boolValidation = TRUE
-  color = "color:blue"
+cleanBiofun <- function(biofun) {
+  text <- ""
+  boolValidation <- TRUE
+  color <- "color:blue"
 
   # if biofun cotains at least one textual variable
-  for (i in 1:length(biofun)){
-    if(!is.numeric(biofun[,i])){
+  for (i in 1:length(biofun)) {
+    if (!is.numeric(biofun[, i])) {
       text <- "The gene set matrix contains textual variable. We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
@@ -114,7 +113,7 @@ cleanBiofun <- function(biofun){
     }
   }
 
-  if(!all(biofun == 0 | biofun==1)){
+  if (!all(biofun == 0 | biofun == 1)) {
     text <- "The gene set matrix contains other values than 0 or 1"
     boolValidation <- FALSE
     color <- "color:red"
@@ -135,20 +134,18 @@ cleanBiofun <- function(biofun){
 #' green: non genes match
 #' blue: everything is ok. Thanks ;)
 #'
-matchMatrixBiofun <- function(geneNames, biofun){
-  text = ""
-  boolValidation = TRUE
-  color = "color:blue"
+matchMatrixBiofun <- function(geneNames, biofun) {
+  text <- ""
+  boolValidation <- TRUE
+  color <- "color:blue"
 
   mm <- match(rownames(biofun), geneNames)
   biofun <- biofun[mm, ]
-  if(all(is.na(mm))){
-    text = "None of the lines of the gene set matrix correspond to the lines of the gene expression data matrix."
-    boolValidation = FALSE
-    color = "color:green"
+  if (all(is.na(mm))) {
+    text <- "None of the lines of the gene set matrix correspond to the lines of the gene expression data matrix."
+    boolValidation <- FALSE
+    color <- "color:green"
   }
 
   return(list(biofun = biofun, text = text, boolValidation = boolValidation, color = color))
-
 }
-

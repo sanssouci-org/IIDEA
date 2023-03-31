@@ -5,6 +5,6 @@
 #' @importFrom shiny shinyAppDir
 #' @export
 #'
-shinyApp <- function(){
+shinyApp <- function() {
   shinyAppDir("ShinyApps/")
 }

@@ -6,13 +6,14 @@
 #' @param alpha numeric value in (0,1)
 #' @param k integer value in `[1,m]`
 #' @param m integer value
+#'
+#' @export
 #' @examples
 #' m <- 10
 #' alpha <- 0.05
 #' thr <- t_linear(alpha, 1:m, m)
-#' t_inv_linear(thr[3], 3, m)
 t_linear <- function(alpha, k, m) {
-  alpha * k / m;
+  alpha * k / m
 }
 
 #' Upper bound for the number of false discoveries among most significant items
@@ -39,7 +40,7 @@ curveMaxFP <- function(p.values, thr) {
   thr <- sort(thr)
 
   kMax <- length(thr)
-  if (s < kMax){  # truncate thr to first 's' values
+  if (s < kMax) { # truncate thr to first 's' values
     seqK <- seq(from = 1, to = s, by = 1)
     thr <- thr[seqK]
   } else { # complete 'thr' to length 's' with its last value
@@ -56,17 +57,17 @@ curveMaxFP <- function(p.values, thr) {
   ii <- 1
   while ((kk <= s) && (ii <= s)) {
     if (thr[kk] > p.values[ii]) {
-      K[ii] <- kk-1
-      ii <- ii+1
+      K[ii] <- kk - 1
+      ii <- ii + 1
     } else {
-      Z[kk] <- ii-1
-      kk <- kk+1
+      Z[kk] <- ii - 1
+      kk <- kk + 1
     }
   }
   Vbar <- numeric(s)
   ww <- which(K > 0)
   A <- Z - (1:s) + 1
-  cA <- cummax(A)[K[ww]]  # cA[i] = max_{k<K[i]} A[k]
+  cA <- cummax(A)[K[ww]] # cA[i] = max_{k<K[i]} A[k]
   Vbar[ww] <- pmin(ww - cA, K[ww])
   Vbar
 }
@@ -96,22 +97,6 @@ curveMaxFP <- function(p.values, thr) {
 #' - stat: Type of post hoc bound, as specified by argument `bound`.
 #'
 #' @importFrom stats predict
-#' @examples
-#'
-#' # Generate Gaussian data and perform multiple tests
-#' obj <- SansSouciSim(m = 502, rho = 0.5, n = 100, pi0 = 0.8, SNR = 3, prob = 0.5)
-#' res <- fit(obj, B = 100, alpha = 0.1)
-#'
-#' # post hoc bound on the set of all hypotheses
-#' predict(res)
-#'
-#' # idem for all possible subsets (sorted by p-value)
-#' bounds <- predict(res, all = TRUE)
-#' head(bounds)
-#'
-#' # post hoc bound on a subset
-#' S <- which(pValues(res) < 0.01)
-#' predict(res, S)
 predict2 <- function(object, S = seq_len(nHyp(object)),
                      what = c("TP", "FDP"), all = FALSE, ...) {
   p.values <- pValues(object)
@@ -148,7 +133,6 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
 #'
 #' Defaults to `c("TP", "FDP")`
 #' @param all A logical value: should the bounds for all ordered subsets of `S` be returned? If `FALSE` (the default), only the bound for `S` is returned
-#' @param ... Not used
 #'
 #' @return If `all` is `FALSE` (the default), only the value of the bound is returned. Otherwise, a `data.frame` is return, with |S| rows and 4 columns:
 #' - x: Number of most significant items selected
@@ -156,20 +140,16 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
 #' - bound: Value of the post hoc bound
 #' - stat: Type of post hoc bound, as specified by argument `bound`.
 #'
+#' @export
 #' @importFrom stats predict
-#' @examples
-#'
-#' # Generate Gaussian data and perform multiple tests
-#' obj <- SansSouciSim(m = 502, rho = 0.5, n = 100, pi0 = 0.8, SNR = 3, prob = 0.5)
-#' res <- fit(obj, B = 100, alpha = 0.1)
-#'
-#' # post hoc bound on the set of all hypotheses
-#' posthoc_bound2(Pvalues(res)
-#'
-posthoc_bound2 <- function (p.values, S = seq_along(p.values), thr = NULL, lab = NULL,
-                            what = c("TP", "FDP"), all = FALSE){
+#' @import sanssouci
+posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = NULL,
+                           what = c("TP", "FDP"), all = FALSE) {
   if (is.null(thr)) {
     stop("Argument 'thr' must be non NULL")
+  }
+  if (is.null(lab)) {
+    lab <- seq(1, length(p.values))
   }
   s <- length(S)
   idxs <- seq_len(s)
@@ -177,21 +157,20 @@ posthoc_bound2 <- function (p.values, S = seq_along(p.values), thr = NULL, lab =
   pS <- p.values[S]
   o <- order(pS)
   sorted_p <- pS[o]
-  if (length(thr) == length(p.values) && all(thr %in% c(0,
-                                                        1))) {
+  if (length(thr) == length(p.values) && all(thr %in% c(0, 1))) {
     max_FP <- cumsum(thr[o] == 0)
-
-  }
-  else {
-    if (s <= 5*sqrt(length(thr))){
+  } else {
+    if (s <= 5 * sqrt(length(thr))) {
       max_FP <- maxFP(sorted_p, thr)
       idxs <- length(idxs)
     } else {
       max_FP <- curveMaxFP(sorted_p, thr)
     }
   }
-  bounds <- sanssouci:::formatBounds(max_FP, idxs = idxs, lab = lab, what = what,
-                                     all = all)
+  bounds <- sanssouci:::formatBounds(max_FP,
+    idxs = idxs, lab = lab, what = what,
+    all = all
+  )
   bounds
 }
 
@@ -206,44 +185,44 @@ posthoc_bound2 <- function (p.values, S = seq_along(p.values), thr = NULL, lab =
 #' - the number of genes in the gene set
 #' - the estimate TP bound
 #' - the estimate FDP bound
-boundGroup2 <- function(object){
-  table <- data.frame("Name" = c(), "# genes" = c(), "TP≥" = c(), "FDP≤"=c(), check.names = FALSE)
+boundGroup2 <- function(object) {
+  table <- data.frame("Name" = c(), "# genes" = c(), "TP≥" = c(), "FDP≤" = c(), check.names = FALSE)
   bioFun <- object$input$biologicalFunc
-  if(class(bioFun)[1]=="list"){
+  if (class(bioFun)[1] == "list") {
     print("on passe ici")
     nameFunctions <- names(bioFun)
-    for (func in nameFunctions){
-      incProgress(1/length(nameFunctions))
+    for (func in nameFunctions) {
+      incProgress(1 / length(nameFunctions))
       name <- bioFun[[func]]
-      ids <- which(is.element(rownames(object$input$Y),name))
-      if (length(ids)>5){
-        bounds <- predict2(object, S=ids)
+      ids <- which(is.element(rownames(object$input$Y), name))
+      if (length(ids) > 5) {
+        bounds <- predict2(object, S = ids)
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP≥" = as.integer(bounds['TP']),
-          "FDP≤" = bounds['FDP'],
-          check.names = FALSE, row.names = NULL))
+          "TP≥" = as.integer(bounds["TP"]),
+          "FDP≤" = bounds["FDP"],
+          check.names = FALSE, row.names = NULL
+        ))
       }
     }
-
   } else {
     nameFunctions <- colnames(bioFun)
-    for (func in nameFunctions){
-      incProgress(1/length(nameFunctions))
+    for (func in nameFunctions) {
+      incProgress(1 / length(nameFunctions))
       ids <- which(bioFun[, func] == 1)
-      if (length(ids)>1){
-        bounds <- predict2(object, S=ids)
+      if (length(ids) > 1) {
+        bounds <- predict2(object, S = ids)
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP≥" = as.integer(bounds['TP']),
-          "FDP≤" = bounds['FDP'],
-          check.names = FALSE, row.names = NULL))
+          "TP≥" = as.integer(bounds["TP"]),
+          "FDP≤" = bounds["FDP"],
+          check.names = FALSE, row.names = NULL
+        ))
       }
     }
   }
-  table <- table[order(table["FDP≤"]),]
+  table <- table[order(table["FDP≤"]), ]
   return(table)
-
 }

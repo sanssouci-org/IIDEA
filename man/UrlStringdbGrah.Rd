@@ -15,7 +15,3 @@ a character, the url for string-db.org
 \description{
 Create an URL for string-db gene network from a vector of gene names.
 }
-\examples{
-
-UrlStringdbGrah("\%0DENSG00000176105\%0DNA")
-}

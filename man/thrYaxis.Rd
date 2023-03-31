@@ -17,6 +17,3 @@ data.frame with the new labels and breaks for the Volcano Plot y-axis
 \description{
 Create a new y-axis for Volcano plot based on calibration threshold.
 }
-\examples{
-thrYaxis(sort(runif(100)), 15)
-}

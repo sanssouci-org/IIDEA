@@ -15,6 +15,3 @@ charactor of html balise
 \description{
 Create a html balise for Gene Ontology description on ebi.ac.uk
 }
-\examples{
-addUrlLink("GO:0018108")
-}

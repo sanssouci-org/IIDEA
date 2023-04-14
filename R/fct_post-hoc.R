@@ -1,4 +1,3 @@
-
 #' Reference families
 #'
 #' Imported from sanssouci package
@@ -185,8 +184,10 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = 
 #' - the number of genes in the gene set
 #' - the estimate TP bound
 #' - the estimate FDP bound
+#'
+#' @export
 boundGroup2 <- function(object) {
-  table <- data.frame("Name" = c(), "# genes" = c(), "TP≥" = c(), "FDP≤" = c(), check.names = FALSE)
+  table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(), "FDP&le;" = c(), check.names = FALSE)
   bioFun <- object$input$biologicalFunc
   if (class(bioFun)[1] == "list") {
     print("on passe ici")
@@ -200,8 +201,8 @@ boundGroup2 <- function(object) {
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP≥" = as.integer(bounds["TP"]),
-          "FDP≤" = bounds["FDP"],
+          "TP&ge;" = as.integer(bounds["TP"]),
+          "FDP&le;" = bounds["FDP"],
           check.names = FALSE, row.names = NULL
         ))
       }
@@ -216,13 +217,13 @@ boundGroup2 <- function(object) {
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP≥" = as.integer(bounds["TP"]),
-          "FDP≤" = bounds["FDP"],
+          "TP&ge;" = as.integer(bounds["TP"]),
+          "FDP&le;" = bounds["FDP"],
           check.names = FALSE, row.names = NULL
         ))
       }
     }
   }
-  table <- table[order(table["FDP≤"]), ]
+  table <- table[order(table["FDP&le;"]), ]
   return(table)
 }

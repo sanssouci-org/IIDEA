@@ -10,14 +10,16 @@ cleanBiofun(biofun)
 \item{biofun}{a matrix for gene sets}
 }
 \value{
-a list with the cleaned matrix, a text for error, a bool for error and the color of the error
+a list with the cleaned matrix, a text for error,
+a bool for error and the color of the error
 }
 \description{
 Clean gene set matrix gived by user
 }
 \details{
 Clean the user matrix for IIDEA requirement. If the matrix does not
-respect the requirement, an error is signaled. The color of the message means:
+respect the requirement, an error is signaled.
+The color of the message means:
 red: the matrix can be used
 orange: the matrix doesnt respect but IIDEA update it and can be used
 blue: everything is ok. Thanks ;)

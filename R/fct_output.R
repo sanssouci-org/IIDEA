@@ -79,6 +79,7 @@ addUrlLink <- function(name) {
 #' @param maxlogp numeric the maximum of -log(p-values)
 #'
 #' @return data.frame with the new labels and breaks for the Volcano Plot y-axis
+#' @export
 thrYaxis <- function(thr, maxlogp) {
   if (maxlogp == Inf) {
     maxlogp <- 16

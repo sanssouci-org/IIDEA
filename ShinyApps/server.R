@@ -219,12 +219,12 @@ shinyServer(function(input, output, session) {
 
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
-              matrix <- expr_ALL # read data from sanssouci.data
+              matrix <- RNAseq_blca # read data from sanssouci.data
 
               ### cleaning categories
               cat <- colnames(matrix)
               categ <- rep(1, length(cat))
-              categ[which(cat == "NEG")] <- 0
+              categ[which(cat == "II")] <- 0
 
               object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) # create SansSouci object
               object$input$geneNames <- rownames(matrix)

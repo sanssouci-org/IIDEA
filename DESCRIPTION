@@ -20,6 +20,9 @@ Imports:
     shiny,
     shinyBS,
     shinyjs
+Remotes:
+    sanssouci-org/sanssouci, 
+    sanssouci-org/sanssouci.data
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

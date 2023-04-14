@@ -20,37 +20,6 @@ shinyServer(function(input, output, session) {
   # Loading data
   ###################
 
-
-  ## loading example of exression gene matrix from GSEABenchmarkeR::loadEData,"geo2kegg"
-  # geo2kegg <- reactive({
-  #   withProgress(message = "Load GSEABenchmarkeR data set ... ", {
-  #     t1 <- Sys.time()
-  #     data <- R.cache::memoizedCall(GSEABenchmarkeR::loadEData,"geo2kegg")
-  #
-  #     t2 <- Sys.time()
-  #     print(paste("Load GSEABenchmarkeR data set:",difftime(t2, t1)))
-  #     setProgress(value = 1, detail = "Done")
-  #     return(data)
-  #   })
-  # })
-
-  ## Loading gene set from EnrichmentBrowser::getGenesets for geo2kegg
-  # go.gs <- reactive({
-  #   withProgress(message = "Load EnrichmentBrowser getGenesets ... ", {
-  #     t1 <- Sys.time()
-  #     go.gs <- R.cache::memoizedCall(EnrichmentBrowser::getGenesets,
-  #                                    org = "hsa", db = "go", onto = "BP", mode = "GO.db")
-  #     T3 <- Sys.time()
-  #     go.gs <- R.cache::memoizedCall(cleanGo.GS, go.gs) # our func
-  #     t2 <- Sys.time()
-  #     print(paste("Load EnrichmentBrowser getGenesets:",difftime(t2, t1)))
-  #     print(paste("T3-T1:",difftime(T3, t1)))
-  #     print(paste("T2-T3:", difftime(t2, T3)))
-  #     setProgress(value = 1, detail = "Done")
-  #     return(go.gs)
-  #   })
-  # })
-
   ## button run
 
   isolate({
@@ -84,7 +53,6 @@ shinyServer(function(input, output, session) {
 
   output$choiceGSEAUI <- renderUI({ # create input
     req(input$choiceTypeData)
-    print(paste("output$choiceGSEAUI", input$choiceTypeData))
     if (req(input$choiceTypeData) == "microarrays") {
       selectInput("choiceGSEA",
         label = "Choose a gene data set",
@@ -94,7 +62,6 @@ shinyServer(function(input, output, session) {
         )
       )
     } else if (req(input$choiceTypeData) == "rnaseq") {
-      print("ici on vire de bord")
       selectInput("choiceGSEA",
         label = "Choose a gene data set",
         choices = c("Urothelial Bladder Carcinoma: stage II vs stage III" = "BLCA")
@@ -156,11 +123,8 @@ shinyServer(function(input, output, session) {
       withProgress(value = 0, message = "Upload Data... ", {
 
         if (input$checkboxDemo) { # if example data set
-          print("checkbocDemo ok")
           if (req(input$choiceTypeData) == "microarrays") {
-            print("microarrays")
             if (req(input$choiceGSEA) == "OurData") {
-              print("Our data")
 
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
@@ -181,7 +145,6 @@ shinyServer(function(input, output, session) {
               mm <- match(base::rownames(bioFun), base::rownames(matrix))
               stopifnot(!any(is.na(mm)))
               object$input$biologicalFunc <- bioFun[mm, ]
-              # print(dim(object$input$biologicalFunc)[1])
               rm(bioFun)
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
@@ -205,21 +168,24 @@ shinyServer(function(input, output, session) {
 
               object$input$biologicalFunc <- readRDS("GSEABenchmarkeR/gene-set/go.gs.RDS")
               # On a laissé sous forme de liste car on a adapté les fonctions qui en ont besoin. Plus rapide qu'en la transformant en matrice binaire
-              # print(length(object$input$biologicalFunc))
               object$bool$url <- rawData@metadata$experimentData@url
 
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
             }
           } else if (req(input$choiceTypeData) == "rnaseq"){
-            print("rnaseq")
             print(input$choiceGSEA)
             if (req(input$choiceGSEA) == "BLCA" | req(input$choiceGSEA) == "OurData") {
-              print("on est bien dans la bonne case sa mère")
 
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- RNAseq_blca # read data from sanssouci.data
+
+              CPM <- matrix/colSums(matrix)*1e6
+              # plot(density(rowMaxs(log(1 + CPM))))
+              ww <- which(rowMaxs(CPM) < 10)
+              ww <- which(rowQuantiles(log(1 + CPM), prob = 0.75) < log(1+5))
+              matrix <- log(1 + CPM[-ww, ])
 
               ### cleaning categories
               cat <- colnames(matrix)
@@ -231,13 +197,13 @@ shinyServer(function(input, output, session) {
 
               setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
 
-              bioFun <- expr_ALL_GO
-              stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
-              mm <- match(base::rownames(bioFun), base::rownames(matrix))
-              stopifnot(!any(is.na(mm)))
-              object$input$biologicalFunc <- bioFun[mm, ]
-              # print(dim(object$input$biologicalFunc)[1])
-              rm(bioFun)
+              # bioFun <- expr_ALL_GO
+              # stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
+              # mm <- match(base::rownames(bioFun), base::rownames(matrix))
+              # stopifnot(!any(is.na(mm)))
+              # object$input$biologicalFunc <- bioFun[mm, ]
+              # # print(dim(object$input$biologicalFunc)[1])
+              # rm(bioFun)
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
               rm(matrix)
@@ -394,7 +360,7 @@ shinyServer(function(input, output, session) {
 
   # Confidance alpha
   alpha <- reactiveVal(0.1) # Initialization
-  observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
+   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(1 - input$sliderConfLevel / 100)
     alpha(newValue)
   })
@@ -404,6 +370,20 @@ shinyServer(function(input, output, session) {
   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(input$numB)
     numB(newValue)
+  })
+
+  rowTestFUN <- reactiveVal(rowWelchTests)
+  observeEvent(input$buttonValidate, {
+    req(input$choiceTypeData)
+    # newValue <- switch(input$choiceTypeData,
+    #                    microarrays = rowWelchTests,
+    #                    rnaseq = rowWilcoxonTests)
+    if(req(input$choiceTypeData) == "microarrays"){
+      newValue <- rowWelchTests
+    } else if(req(input$choiceTypeData) == "rnaseq"){
+      newValue <- rowWilcoxonTests
+    }
+    rowTestFUN(newValue)
   })
 
   # reference family
@@ -456,6 +436,8 @@ shinyServer(function(input, output, session) {
   })
 
 
+
+
   # If degraded matrix is available
 
   output$msgDegraded <- renderUI({
@@ -492,28 +474,6 @@ shinyServer(function(input, output, session) {
 
 
 
-  # ## JER calibration on available expression gene matrix
-  # cal <- reactive({
-  #   # eventReactive(input$buttonValidate, {
-  #   withProgress(value = 0, message = "Perform calibration ... ", {
-  #     incProgress(amount = 0.3)
-  #     t1 <- Sys.time()
-  #
-  #     cal <- R.cache::memoizedCall(calibrateJER,
-  #                                  req(data()$matrix), # if data()$matrix == NULL, not perform [-> not available matrix or degraded matrix]
-  #                                  categ = data()$categ,
-  #                                  B = numB(), alpha = alpha(),
-  #                                  refFamily = refFamily(), alternative = alternative(),
-  #                                  K = numK()
-  #     )
-  #
-  #
-  #     t2 <- Sys.time()
-  #     print(paste("calibration :",difftime(t2, t1)))
-  #     setProgress(value = 0.7, detail = "Done")
-  #     return(cal)
-  #   })
-  # })
   ## JER calibration on available expression gene matrix
   # observe({
   observeEvent(input$buttonValidate, {
@@ -522,17 +482,10 @@ shinyServer(function(input, output, session) {
       withProgress(value = 0, message = "Perform calibration ... ", {
         incProgress(amount = 0.3)
         t1 <- Sys.time()
-        # object <- memoizedCall(fit,
-        #                        object = data(),
-        #                        alpha = req(alpha()),
-        #                        B = numB(),
-        #                        alternative = alternative(),
-        #                        family = refFamily(),
-        #                        K = numK()
-        # )
         object <- fit(data(),
           alpha = req(alpha()),
           B = numB(),
+          rowTestFUN = req(rowTestFUN()),
           alternative = alternative(),
           family = refFamily(),
           K = numK()
@@ -547,13 +500,6 @@ shinyServer(function(input, output, session) {
     } else { # degraded version #if degraded matrix is used
       # les matrices pval et fc sont déjà rentrées dans l'objet lors que la création de l'objet
 
-      # object <- fit(data(),   #Non utilisable car nécessite Y
-      #               alpha = req(alpha()),
-      #               B = 0,
-      #               alternative = alternative(),
-      #               family = refFamily(),
-      #               K = numK()
-      # )
 
       m <- nHyp(data())
       thr <- t_linear(alpha(), seq_len(m), m) # force using of Simes and k=m # IMPORT FROM FUNCTION.R
@@ -569,67 +515,6 @@ shinyServer(function(input, output, session) {
     data(object)
   })
 
-  ###### dire ce qui est calculé dans cette partie ci dessus
-
-  # ici sont calculés la calibration (thr et stat pivotale)
-  # puis rowWelchTest : -> obtient p-values ('p.value') et foldchange ('estimate')
-
-
-
-  ## Thr calculation
-  # thr <- reactiveVal() #Initialization
-  #
-  # observe({
-  #   req(data()$matrix) # if gene expression matrix is available
-  #   newValue <- req(cal()$thr) #we use thr from calibration and user's parameters
-  #   thr(newValue)
-  # })
-  #
-  # observe({ # if p.value matrix is used
-  #
-  #
-  #
-  #   req(data()$df) #if degraded matrix is used
-  #   # if the gene expression matrix is available => data()$df == NULL
-  #   m = dim(data()$df)[1]
-  #   newValue <- SimesThresholdFamily(m, kMax = m)(alpha()) # force using of Simes and k=m
-  #   thr(newValue)
-  # })
-
-  ###################
-  # P-values and foldchange
-  ###################
-
-  # df <- reactiveVal() #creation
-
-  # observe({ # If gene expression matrix is available
-  #   req(data())
-  #   req(pValues(data()))
-  #   req(thresholds(data()))
-  #   object <- req(data()) # on récupère l'objet
-  #   object$output$logp <- -log10(pValues(object))
-  #   object$output$adjp <- p.adjust(pValues(object), method = "BH")
-  #   data(object)
-  #   # req(data()$matrix) #active observe cell
-  #   # dex <- rowWelchTests(req(data()$matrix), data()$categ) # make a test
-  #   # print(dex)
-  #   # pval <- dex[["p.value"]]
-  #   # logp <- -log10(pval)
-  #   # fc <- dex$estimate
-  #   # adjp <- p.adjust(pval, method = "BH")
-  #   # newValue <- list(logp = logp, fc = fc, adjp = adjp, pval = pval)
-  #   # df(newValue) #update df()
-  # })
-
-  # observe({ # if degraded version
-  #   req(data()$df) #active observe cell
-  #   pval <- data()$df[['p.value']] # from input
-  #   fc <- data()$df[['fc']]
-  #   logp <- -log10(pval)
-  #   adjp <- p.adjust(pval, method = "BH")
-  #   newValue <- list(logp = logp, fc = fc, adjp = adjp, pval = pval)
-  #   df(newValue)
-  # })
 
 
   ###################

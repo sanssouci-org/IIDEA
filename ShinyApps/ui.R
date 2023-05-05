@@ -153,7 +153,8 @@ shinyUI(fluidPage(
             selected = "Simes"
           ),
           uiOutput("inputK") # )
-        )
+        ),
+        uiOutput("teststatUI")
       ),
       verbatimTextOutput("sorti"),
       conditionalPanel(

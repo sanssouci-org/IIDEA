@@ -121,11 +121,9 @@ shinyServer(function(input, output, session) {
     reactive({
       # eventReactive(input$buttonValidate, {
       withProgress(value = 0, message = "Upload Data... ", {
-
         if (input$checkboxDemo) { # if example data set
           if (req(input$choiceTypeData) == "microarrays") {
-            if (req(input$choiceGSEA) == "OurData") {
-
+            if (req(input$choiceGSEA) == "OurData" | req(input$choiceGSEA) == "BLCA") {
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- expr_ALL # read data from sanssouci.data
@@ -173,18 +171,17 @@ shinyServer(function(input, output, session) {
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
             }
-          } else if (req(input$choiceTypeData) == "rnaseq"){
-            print(input$choiceGSEA)
+          } else if (req(input$choiceTypeData) == "rnaseq") {
+            # print(input$choiceGSEA)
             if (req(input$choiceGSEA) == "BLCA" | req(input$choiceGSEA) == "OurData") {
-
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- RNAseq_blca # read data from sanssouci.data
 
-              CPM <- matrix/colSums(matrix)*1e6
+              CPM <- matrix / colSums(matrix) * 1e6
               # plot(density(rowMaxs(log(1 + CPM))))
               ww <- which(rowMaxs(CPM) < 10)
-              ww <- which(rowQuantiles(log(1 + CPM), prob = 0.75) < log(1+5))
+              ww <- which(rowQuantiles(log(1 + CPM), prob = 0.75) < log(1 + 5))
               matrix <- log(1 + CPM[-ww, ])
 
               ### cleaning categories
@@ -360,7 +357,7 @@ shinyServer(function(input, output, session) {
 
   # Confidance alpha
   alpha <- reactiveVal(0.1) # Initialization
-   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
+  observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(1 - input$sliderConfLevel / 100)
     alpha(newValue)
   })
@@ -372,17 +369,36 @@ shinyServer(function(input, output, session) {
     numB(newValue)
   })
 
-  rowTestFUN <- reactiveVal(rowWelchTests)
-  observeEvent(input$buttonValidate, {
+  # Test statistic
+  output$teststatUI <- renderUI({ # create input
+    # req(input$choiceTypeData)
+
+    selectInput("teststat",
+      label = "Choose a test statistic for the calibration",
+      choices = switch(req(input$choiceTypeData),
+        microarrays = c(
+          "Welch test" = rowWelchTests
+        ),
+        rnaseq = c(
+          "Wilcoxon test" = rowWilcoxonTests
+        )
+      )
+    )
+  })
+
+  rowTestFUN <- reactiveVal()
+  observeEvent(object_I(), {
     req(input$choiceTypeData)
-    # newValue <- switch(input$choiceTypeData,
-    #                    microarrays = rowWelchTests,
-    #                    rnaseq = rowWilcoxonTests)
-    if(req(input$choiceTypeData) == "microarrays"){
-      newValue <- rowWelchTests
-    } else if(req(input$choiceTypeData) == "rnaseq"){
-      newValue <- rowWilcoxonTests
-    }
+    newValue <- switch(input$choiceTypeData,
+      microarrays = rowWelchTests,
+      rnaseq = rowWilcoxonTests
+    )
+  })
+
+  # Attention ici le test n'est pas mis à jour
+  observeEvent(input$teststat, {
+    req(input$choiceTypeData)
+    newValue <- req(input$teststat)
     rowTestFUN(newValue)
   })
 
@@ -481,16 +497,19 @@ shinyServer(function(input, output, session) {
     if (!data()$bool$degrade) { # non degraded version
       withProgress(value = 0, message = "Perform calibration ... ", {
         incProgress(amount = 0.3)
+        rTF <- req(rowTestFUN())
+        if (!is.function(class(rTF))) {
+          rTF <- req(eval(parse(text = rowTestFUN()), envir = environment(rowWelchTests)))
+        }
         t1 <- Sys.time()
         object <- fit(data(),
           alpha = req(alpha()),
           B = numB(),
-          rowTestFUN = req(rowTestFUN()),
+          rowTestFUN = rTF,
           alternative = alternative(),
           family = refFamily(),
           K = numK()
         )
-
 
         t2 <- Sys.time()
         print(paste("calibration :", difftime(t2, t1)))

@@ -1,4 +1,4 @@
-#' Server par of IIDEA
+#' Server part of IIDEA
 #'
 #' @param input
 #' @param output
@@ -127,10 +127,10 @@ shinyServer(function(input, output, session) {
   observeEvent(input$resetInputData, { #to delete input file (clicking bin incon)
     fileData(NULL) # delete serveur variable
     data(NULL)
-    reset("fileData") #delete UI variable (in fileInput)
+    reset("fileData") # delete UI variable (in fileInput)
   })
 
-  ## Loading gene set matrix : same structure than before
+  ## Loading gene set matrix : same structure as before
   fileGroup <- reactiveVal(NULL)
   observe({
     newValue <- input$fileGroup
@@ -147,17 +147,17 @@ shinyServer(function(input, output, session) {
     reactive({
       # eventReactive(input$buttonValidate, {
       withProgress(value = 0, message = "Upload Data... ", {
-        if (input$checkboxDemo){ #if example data set
+        if (input$checkboxDemo){ # if example data set
           if(req(input$choiceGSEA)=='OurData'){ # cleaning for data from sanssouci.data
             setProgress(value = 0.4, detail = "sanssouci data set ...")
-            matrix <- expr_ALL #read data from sanssouci.data
+            matrix <- expr_ALL # read data from sanssouci.data
 
             ### cleaning categories
             cat <- colnames(matrix)
             categ <- rep(1, length(cat))
             categ[which(cat == "NEG")] <- 0
 
-            object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) #create SansSouci object
+            object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) # create SansSouci object
             object$input$geneNames <- rownames(matrix)
 
             setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
@@ -189,7 +189,7 @@ shinyServer(function(input, output, session) {
             object$input$geneNames <- base::rownames(matrix)
 
             object$input$biologicalFunc <- readRDS("GSEABenchmarkeR/gene-set/go.gs.RDS")
-            #On a laissé sous forme de liste car on a adapté les fonctions qui en ont besoin. Plus rapide qu'en la transformant en matrice binaire
+            # On a laissé sous forme de liste car on a adapté les fonctions qui en ont besoin. Plus rapide qu'en la transformant en matrice binaire
             # print(length(object$input$biologicalFunc))
             object$bool$url <- rawData@metadata$experimentData@url
 
@@ -197,7 +197,7 @@ shinyServer(function(input, output, session) {
             object$bool$degrade <- FALSE
           }
 
-        } else { # if user use his own data
+        } else { # if user uploads their own data
           req(input$fileData)
           req(fileData())
           file <- req(fileData())
@@ -206,7 +206,7 @@ shinyServer(function(input, output, session) {
 
           boolDegrade <- (length(matrix) == 2 & all(sort(colnames(matrix)) == sort(c("fc","p.value")))) #est ce que la matrice est dégradée
           setProgress(value = 0.2, detail = "Test data ...")
-          if (boolDegrade){ #cleaning degraded matrix
+          if (boolDegrade){ # cleaning light matrix
             setProgress(value = 0.4)
 
             m=dim(matrix)[1]
@@ -224,13 +224,13 @@ shinyServer(function(input, output, session) {
 
             object$bool$validation <- TRUE
 
-          } else { #cleaning expression matrix
+          } else { # cleaning expression matrix
             setProgress(value = 0.4, detail = "Clean data set ...")
-            clean <- cleanMatrix(matrix) #see cleanMatrix function :
-            ### gve specific issue for non available matrix
+            clean <- cleanMatrix(matrix) # see cleanMatrix function :
+            ### give specific issue for non available matrix
 
-            ### if matrix is not available, matrix == NULL allows to block the calibration JER and the printing
-            if(clean$boolValidation){ #if matrix is ok
+            ### if matrix is not available, matrix == NULL allows to block JER calibration and printing
+            if(clean$boolValidation){ # if matrix is ok
               object <- SansSouci(Y = as.matrix(clean$data), groups = as.numeric(colnames(clean$data)))
               object$input$geneNames <- base::rownames(clean$data)
             }else{ #if isn't
@@ -245,8 +245,8 @@ shinyServer(function(input, output, session) {
             }
 
             object$bool$validation <- clean$boolValidation
-            object$bool$matrix.color <- clean$color #color of error message
-            object$bool$matrix.text <- clean$text #eroor message
+            object$bool$matrix.color <- clean$color # color of error message
+            object$bool$matrix.text <- clean$text # error message
 
           }
 
@@ -305,13 +305,13 @@ shinyServer(function(input, output, session) {
 
 
 
-  urlDataSet <- eventReactive(input$buttonValidate, { #give link to description of geo2kegg data sets
+  urlDataSet <- eventReactive(input$buttonValidate, { # give link to description of geo2kegg data sets
     # req(geo2kegg())
     req(input$choiceGSEA)
     # req(geo2kegg()[[input$choiceGSEA]])
     req(object_I()$bool$url)
-    # return(a("URL link to data set description", href=geo2kegg()[[input$choiceGSEA]]@experimentData@url))
-    return(a("URL link to data set description", href=object_I()$bool$url, target="_blank"))
+    # return(a("URL of data set description", href=geo2kegg()[[input$choiceGSEA]]@experimentData@url))
+    return(a("URL of data set description", href=object_I()$bool$url, target="_blank"))
 
   })
   output$msgURLds <- renderUI({
@@ -324,10 +324,10 @@ shinyServer(function(input, output, session) {
     tags$span(style= req(object_I()$bool$matrix.color), paste(req(object_I()$bool$matrix.text)))
   })
 
-  output$errorBioMatrix <- renderUI({ #gene set matrix error
+  output$errorBioMatrix <- renderUI({ # gene set matrix error
     tags$span(style=req(object_I()$bool$bioFun.color), paste(req(object_I()$bool$bioFun.text)))
   })
-  output$errorMatch <- renderUI({ # none commun gene btw expression gene matrix and gene set matrix
+  output$errorMatch <- renderUI({ # no common gene b/w expression gene matrix and gene set matrix
     tags$span(style=req(object_I()$bool$match.color), paste(req(object_I()$bool$match.text)))
   })
 
@@ -341,28 +341,28 @@ shinyServer(function(input, output, session) {
   ###################
 
   # Confidance alpha
-  alpha <- reactiveVal(0.1) #Initialization
+  alpha <- reactiveVal(0.1) # Initialization
   observeEvent(input$buttonValidate,{ # When Run is clicked : we get the input value
     newValue <- req(1 - input$sliderConfLevel/100)
     alpha(newValue)
   })
 
   # number of permutation
-  numB <- reactiveVal(500) #Initialization
+  numB <- reactiveVal(500) # Initialization
   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(input$numB)
     numB(newValue)
   })
 
   # reference family
-  refFamily <- reactiveVal("Simes") #Initialization
+  refFamily <- reactiveVal("Simes") # Initialization
   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(input$refFamily)
     refFamily(newValue)
   })
 
-  #alternative hypothesis
-  alternative <- reactiveVal("two.sided") #Initialisation
+  # alternative hypothesis
+  alternative <- reactiveVal("two.sided") # Initialisation
   observeEvent(input$buttonValidate, { # When Run is clicked : we get the input value
     newValue <- req(input$alternative)
     alternative(newValue)
@@ -381,7 +381,7 @@ shinyServer(function(input, output, session) {
 
   ## numKI() is used to intiate the printed input valueK
   numKI <- reactiveVal()
-  observe({ #Initialization, if refFamily == 'Beta' or not
+  observe({ # Initialization, if refFamily == 'Beta' or not
     req(object_I())
     newValue <- ifelse(input$refFamily == "Beta",
                        round(2*req(nrow(object_I()$input$Y))/100),
@@ -391,7 +391,7 @@ shinyServer(function(input, output, session) {
 
   ## numK is the parameters choosen by users and use in server side
   numK <- reactiveVal()
-  observeEvent(object_I(),{   #si les paramètres ne sont pas activés, input$valueK n'existe pas et donc on a pas le bon résultat ... pourquoi ? CalibrateJER devrait gérer si K est null non ?
+  observeEvent(object_I(),{   # si les paramètres ne sont pas activés, input$valueK n'existe pas et donc on a pas le bon résultat ... pourquoi ? CalibrateJER devrait gérer si K est null non ?
     req(object_I())           # when object_I() is change, INITIALISATION of numK()
     newValue <- req(nrow(object_I()$input$Y))
     numK(newValue)
@@ -402,7 +402,7 @@ shinyServer(function(input, output, session) {
   })
 
 
-  # If degraded matrix is available
+  # If light matrix is available
 
   output$msgDegraded <- renderUI({
     tags$span(style= "color:grey", paste("A matrix containing p-values and fold change is detected.",
@@ -436,7 +436,7 @@ shinyServer(function(input, output, session) {
 
 
 
-  # ## JER calibration on available expression gene matrix
+  # ## JER calibration for available expression gene matrix
   # cal <- reactive({
   #   # eventReactive(input$buttonValidate, {
   #   withProgress(value = 0, message = "Perform calibration ... ", {
@@ -652,7 +652,7 @@ shinyServer(function(input, output, session) {
   })
 
 
-  #matrix p-val & fc of selected genes by thresholds => to plot red points on volcano plot
+  # matrix p-val & fc of selected genes by thresholds => to plot red points on volcano plot
   selected_points <- reactive({
     list(x = data()$output$estimate[selectedGenes()$sel12],
          y = data()$output$logp[selectedGenes()$sel12])
@@ -709,7 +709,7 @@ shinyServer(function(input, output, session) {
   # Post Hoc bound table reactive variable
   ###################
 
-  #Initialization of variable of post hoc bound table (PHB table)
+  # Initialization of variable of post hoc bound table (PHB table)
   tableResult <- reactiveVal(data.frame(
     Selection = c("Threshold selection"))) #Initialization
 
@@ -727,8 +727,8 @@ shinyServer(function(input, output, session) {
   observeEvent(TP_FDP(),{ # When threshold change
 
 
-    bottomTable <- tableResult() %>%  #keep box/lasso selection
-      filter(Selection != "Threshold selection") #remove row named "Threshold selection"
+    bottomTable <- tableResult() %>%  # keep box/lasso selection
+      filter(Selection != "Threshold selection") # remove row named "Threshold selection"
     upperTable <- baseTable() # take new value of PHB for the new threshold selection
     newValue <- rbind(upperTable, bottomTable)
     tableResult(newValue)
@@ -738,8 +738,8 @@ shinyServer(function(input, output, session) {
   ## d() is the reactive variable for box and lasso selection
   observeEvent(d(),{  # When user selects a new group of points
     req(calcBoundSelection())
-    vectorGene <- names(pValues(data())[manuelSelected()]) #list of gene contained in gene selection
-    url <- UrlStringdbGrah(vectorGene) #construction of link to StringDB interaction graph
+    vectorGene <- names(pValues(data())[manuelSelected()]) # list of gene contained in gene selection
+    url <- UrlStringdbGrah(vectorGene) # construction of link to StringDB interaction graph
     n <- dim(tableResult())[1]
     newValue <- rbind(tableResult(), c(paste('<a target="_blank" href="', url, '" >User selection ',n, '</a>', sep=""),
                                        calcBoundSelection()['n'],
@@ -755,7 +755,7 @@ shinyServer(function(input, output, session) {
     tableResult(newValue)
   })
 
-  # if data change, PHB table is cleaned
+  # if data changes, PHB table is cleaned
   observeEvent(data(), { # to clean printed table
     newValue <- baseTable()
     tableResult(newValue)
@@ -797,12 +797,12 @@ shinyServer(function(input, output, session) {
   # Prepare objects for plotly volcano plots
   ###################
 
-  #value for adjusted p-values yaxis
+  # value for adjusted p-values yaxis
   lineAdjp <- reactive({
     req(data()$output$adjp)
     listLog <- c()
-    for (i in c(0.5,0.25,0.1,0.05,0.025,0.01,0.001,0.0001)){ #selected line on yaxis /!\ if you change it you have to change in yaxis()
-      min05 <- which.min(abs(data()$output$adjp-i)) #to take the gene with the nearest adjpvalue to i
+    for (i in c(0.5,0.25,0.1,0.05,0.025,0.01,0.001,0.0001)){ # selected line on yaxis /!\ if you change it you have to change in yaxis()
+      min05 <- which.min(abs(data()$output$adjp-i)) # to take the gene with the nearest adjpvalue to i
       y05 <- data()$output$logp[[min05]] # take the equivalent in logpvalue to print it on VP
       listLog <- c(listLog, y05)
     }
@@ -818,7 +818,7 @@ shinyServer(function(input, output, session) {
     thrYaxis(thr = thresholds(data()), maxlogp=max(data()$output$logp))
   })
 
-  #reactive variable containing values for yaxis depending users choice (input$choiceYaxis)
+  # reactive variable containing values for yaxis depending users choice (input$choiceYaxis)
   yaxis <- reactive({
     f <- list(
       size = 14,
@@ -852,7 +852,7 @@ shinyServer(function(input, output, session) {
   # reactive values for threshold (used for selecting genes)
   thrLine <- reactive({
     list(
-      list( # rigth logFC threshold vertical()[["shapes[0].x0"]]
+      list( # right logFC threshold vertical()[["shapes[0].x0"]]
         type = "line",
         line = list(color = "orange", dash = "dot"),
         x0 = xint(),
@@ -985,15 +985,15 @@ shinyServer(function(input, output, session) {
 
   # Yaxis change
   observeEvent(
-    {input$choiceYaxis #user selection
-      yaxis()} #update yaxis values when parameters change (alpha, ...)
-    , { #when we choose a different y axis
+    {input$choiceYaxis # user selection
+      yaxis()} # update yaxis values when parameters change (alpha, ...)
+    , { # when we choose a different y axis
       plotlyProxy("volcanoplotPosteriori", session) %>%
-        plotlyProxyInvoke("relayout", list(yaxis = yaxis())) #relayout to update values
-      #a stack is not used in layout, only one value is possible to yaxis
+        plotlyProxyInvoke("relayout", list(yaxis = yaxis())) # relayout to update values
+      # a stack is not used in layout, only one value is possible to yaxis
     })
 
-  #When user changes orange threshold to select red points
+  # When user changes orange threshold to select red points
   observeEvent(vertical(), {  # for moving of orange threshold
     plotlyProxy("volcanoplotPosteriori", session)%>%
       plotlyProxyInvoke("relayout",
@@ -1001,20 +1001,20 @@ shinyServer(function(input, output, session) {
   })
 
   # on the stack TRACES of VP1, the layer 0 is all the point (unselected),
-  #the layer 1 is the red points
+  # the layer 1 is the red points
   # the layer 2 is the blue points
 
 
 
   # when user want to watch again a user selection by box or lasso
-  #tableBounds_rows_selected : the user selection on the output tableBounds
+  # tableBounds_rows_selected : the user selection on the output tableBounds
   ## take the name of the user selection
   userDTselectPost <- reactive({
     href <- tableResult()[input$tableBounds_rows_selected, "Selection"]
     str_remove_all(str_remove_all(href, "<a(.*?)>"), "(</a>)")
   })
 
-  #take the list of gene selected by user
+  # take the list of gene selected by user
   selectionUserRe <- reactive({
     vect <- tableCSV()[,req(userDTselectPost())]
     sel <- which(vect == 1)
@@ -1023,9 +1023,9 @@ shinyServer(function(input, output, session) {
 
   # update plotly VP1
   observeEvent(userDTselectPost(), {
-    if(length(userDTselectPost()) == 1){ #if a row is selected (length == 1 because can select only one row)
+    if(length(userDTselectPost()) == 1){ # if a row is selected (length == 1 because can select only one row)
       plotlyProxy("volcanoplotPosteriori", session) %>%
-        plotlyProxyInvoke("deleteTraces", 2)            #first we delete previous blue points :
+        plotlyProxyInvoke("deleteTraces", 2)            # first we delete previous blue points :
       # if there are not bleu points, none points are deleted
 
       plotlyProxy("volcanoplotPosteriori", session) %>% #second, we trace new blue points
@@ -1051,9 +1051,9 @@ shinyServer(function(input, output, session) {
   # Download list of selected gene from box/lasso
   ###################
 
-  tableCSV <- reactiveVal() #creation of reactive variable
+  tableCSV <- reactiveVal() # creation of reactive variable
 
-  #initialize table when data() change
+  # initialize table when data() change
   observeEvent({
     input$resetCSV
     data()$input$Y
@@ -1067,7 +1067,7 @@ shinyServer(function(input, output, session) {
     tableCSV(newValue)
   })
 
-  #When user want to change thresholds
+  # When user want to change thresholds
   observeEvent(selectedGenes(),{
     req(data()$input$Y)
     req(selectedGenes())
@@ -1082,7 +1082,7 @@ shinyServer(function(input, output, session) {
     tableCSV(df)
   })
 
-  #When user selected ne gene set from lasso/box [d() activate]
+  # When user selected ne gene set from lasso/box [d() activate]
   observeEvent(d(), {
     req(data()$input$Y)
     req(tableCSV())
@@ -1097,7 +1097,7 @@ shinyServer(function(input, output, session) {
 
 
   # download binary matrix containing list of gene in user selections
-  output$downloadData <- downloadHandler( #download csv of user selection
+  output$downloadData <- downloadHandler( # download csv of user selection
     filename = function() {
       tag <- format(Sys.time(), "%Y-%M-%d_%H-%m-%S")
       sprintf("volcano-plot_gene-selections_%s.csv", tag)
@@ -1120,7 +1120,7 @@ shinyServer(function(input, output, session) {
     }
   )
 
-  # while buttonValidate is not clicke, these button are hidden
+  # while buttonValidate is not clicked, these buttons are hidden
   observeEvent(input$buttonValidate, {
     shinyjs::show("downloadPHBTable")
     shinyjs::show("resetCSV")
@@ -1187,7 +1187,7 @@ shinyServer(function(input, output, session) {
   })
 
   # calculate vounds for all features to compare with each gene sets (competitive methods)
-  boundsW <- reactive({ #calcul bounds for all features
+  boundsW <- reactive({ # calculate bounds for all features
     req(pValues(data()))
     req(thresholds(data()))
     c(n=length(nHyp(data())), predict(object = data()))
@@ -1262,7 +1262,7 @@ shinyServer(function(input, output, session) {
     return(name)
   })
 
-  #list of genes selected by user
+  # list of genes selected by user
   selectionGroup <- reactive({
     req(data()$input$biologicalFunc)
 
@@ -1319,7 +1319,7 @@ shinyServer(function(input, output, session) {
 
   })
 
-  #output of priori()
+  # output of priori()
   output$volcanoplotPriori <- renderPlotly({
     withProgress( message = "Plot", {
       p <- priori()
@@ -1328,9 +1328,9 @@ shinyServer(function(input, output, session) {
     })
   })
 
-  #when yaxis change
+  # when yaxis changes
   observeEvent({input$choiceYaxis
-    yaxis()}, { #when we choose a different y axis
+    yaxis()}, { # when we choose a different y axis
       plotlyProxy("volcanoplotPriori", session) %>%
         plotlyProxyInvoke("relayout", list(yaxis = yaxis()))
 
@@ -1338,8 +1338,8 @@ shinyServer(function(input, output, session) {
     })
 
 
-  #when user select a gen set to print it on VP2
-  #here, there are not red points : stack is composed of 0 :points ; 1 : blue points (gene set selected)
+  # when user select a gen set to print it on VP2
+  # here, there are no red points : stack is composed of 0 :points ; 1 : blue points (gene set selected)
   observeEvent(userDTselectPrio(), {
     if(length(userDTselectPrio()) == 1){
       plotlyProxy("volcanoplotPriori", session) %>%

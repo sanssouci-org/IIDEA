@@ -1,20 +1,3 @@
-#' Reference families
-#'
-#' Imported from sanssouci package
-#'
-#' @param alpha numeric value in (0,1)
-#' @param k integer value in `[1,m]`
-#' @param m integer value
-#'
-#' @export
-#' @examples
-#' m <- 10
-#' alpha <- 0.05
-#' thr <- t_linear(alpha, 1:m, m)
-t_linear <- function(alpha, k, m) {
-  alpha * k / m
-}
-
 #' Upper bound for the number of false discoveries among most significant items
 #'
 #' Imported from sanssouci package

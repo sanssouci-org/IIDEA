@@ -7,9 +7,6 @@
 #' @return
 #'
 shinyServer(function(input, output, session) {
-  source("function.R")
-
-
   # size of input data sets
   options(shiny.maxRequestSize = 1024^3)
   output$help <- renderUI({

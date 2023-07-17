@@ -1,3 +1,5 @@
+utils::globalVariables(c("expr_ALL", "expr_ALL_GO"))
+
 #' Create example data set
 #'
 #' @details Create example data set from the package sanssouci.data.
@@ -13,10 +15,10 @@
 #' exampleData()
 exampleData <- function() {
   if (!exists("expr_ALL")) {
-    data(expr_ALL, package = "sanssouci.data")
+    data(expr_ALL, package = "sanssouci.data", envir = environment())
   }
   if (!exists("expr_ALL_GO")) {
-    data(expr_ALL_GO, package = "sanssouci.data")
+    data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
   }
   #### expression matrix
   data <- list()
@@ -63,6 +65,8 @@ UrlStringdbGrah <- function(vector) {
 #' @param name charactor of Gene Ontology name.
 #'
 #' @return charactor of html balise
+#' @importFrom stringr str_extract_all
+#'
 addUrlLink <- function(name) {
   if (grepl("GO:\\d+", name)) { # met ce lien spécifique si la structure GO:000000000... est dans le nom
     url <- paste("https://www.ebi.ac.uk/QuickGO/term/", str_extract_all(name, "GO:\\d+"), sep = "")

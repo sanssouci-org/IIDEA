@@ -149,7 +149,7 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = 
       max_FP <- curveMaxFP(sorted_p, thr)
     }
   }
-  bounds <- sanssouci:::formatBounds(max_FP,
+  bounds <- formatBounds(max_FP,
     idxs = idxs, lab = lab, what = what,
     all = all
   )
@@ -169,6 +169,7 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = 
 #' - the estimate FDP bound
 #'
 #' @export
+#' @importFrom shiny incProgress
 boundGroup2 <- function(object) {
   table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(), "FDP&le;" = c(), check.names = FALSE)
   bioFun <- object$input$biologicalFunc
@@ -209,4 +210,40 @@ boundGroup2 <- function(object) {
   }
   table <- table[order(table["FDP&le;"]), ]
   return(table)
+}
+
+formatBounds <- function(max_FP, idxs = seq_len(max_FP), lab = NULL,
+                         what = c("TP", "FDP"), all = FALSE) {
+  stopifnot(length(max_FP) == length(idxs))
+  max_FDP <- max_FP/idxs
+  what0 <- c("FP", "TP", "FDP", "TDP")
+  if (!all(what %in% what0)) {
+    stop("Error in argument 'what': only the following statistics are supported: ", paste(what0, collapse = ", "))
+  }
+  if (length(max_FP) == 0) {
+    if (all) {   # output should be empty (no subsets of positive size)
+      mat <- matrix(NA, nrow = 0, ncol = 4)
+      colnames(mat) <- c("x", "label", "stat", "bound")
+      bounds <- as.data.frame(mat)
+      return(bounds)
+    } else {     # output should not be empty (number of FP in empty set is 0)
+      idxs <- 0
+      max_FP <- 0 # number of FP in empty set is 0
+      max_FDP <- 0 # FDP in empty set is 0
+    }
+  }
+  annot <- data.frame(x = idxs,
+                      label = lab,
+                      row.names = NULL)
+  boundsList <- list(
+    FP = cbind(annot, stat = "FP", bound = max_FP),
+    TP = cbind(annot, stat = "TP", bound = idxs - max_FP),
+    FDP = cbind(annot, stat = "FDP", bound = max_FDP),
+    TDP = cbind(annot, stat = "TDP", bound = 1 - max_FDP))
+  boundsList <- boundsList[what]
+  if (!all) {
+    boundsList <- lapply(boundsList, FUN = function(x) x[length(idxs), ])
+  }
+  bounds <- Reduce(rbind, boundsList)
+  bounds
 }

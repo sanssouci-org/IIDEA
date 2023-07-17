@@ -3,6 +3,7 @@
 #' @param go.gs data frame from go.gs
 #'
 #' @return a list of cleaned data set
+#' @importFrom shiny incProgress
 cleanGo.GS <- function(go.gs) {
   for (i in names(go.gs)) {
     incProgress(1 / length(go.gs))
@@ -19,6 +20,7 @@ cleanGo.GS <- function(go.gs) {
 #' @param ... other parameter for read.csv function
 #'
 #' @return a dataframe containing the dataset from the csv file
+#' @importFrom utils read.csv
 #' @export
 readCSV_sep <- function(file, ...) {
   df <- read.csv(file, sep = c(","), ...)

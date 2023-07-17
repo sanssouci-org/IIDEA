@@ -19,7 +19,8 @@ Imports:
     sanssouci.data,
     shiny,
     shinyBS,
-    shinyjs
+    shinyjs,
+    stringr
 Remotes:
     sanssouci-org/sanssouci, 
     sanssouci-org/sanssouci.data

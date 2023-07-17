@@ -14,8 +14,9 @@ library("R.cache")
 
 
 
-data(expr_ALL, package = "sanssouci.data")
-data(expr_ALL_GO, package = "sanssouci.data")
+data(expr_ALL, package = "sanssouci.data", envir = environment())
+data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
+
 
 shinyUI(fluidPage(
   useShinyjs(),
@@ -122,7 +123,7 @@ shinyUI(fluidPage(
       ),
       conditionalPanel(
         condition = "input.checkboxAdvancedParam",
-        shinyjs::hidden(uiOutput("msgDegraded")),
+        hidden(uiOutput("msgDegraded")),
         splitLayout(
           selectInput("alternative",
             label = "Alternative",
@@ -164,7 +165,7 @@ shinyUI(fluidPage(
                 width = 12
               )
             ),
-            shinyjs::hidden(
+            hidden(
               downloadButton(
                 "downloadPHBTable",
                 "Download post hoc bound table"

@@ -6,6 +6,8 @@
 #'
 #' @return
 #'
+#' @import shinyjs
+#'
 shinyServer(function(input, output, session) {
   # size of input data sets
   options(shiny.maxRequestSize = 1024^3)
@@ -23,11 +25,11 @@ shinyServer(function(input, output, session) {
   ## button run
 
   isolate({
-    shinyjs::disable("buttonValidate")
+    disable("buttonValidate")
   }) # while geo2kegg is not loaded, user cannot "run" #Initialization
 
   observeEvent(object_I(), { # object is loaded, user can "run"
-    shinyjs::enable("buttonValidate")
+    enable("buttonValidate")
   })
 
   ## input for example data sets
@@ -438,19 +440,19 @@ shinyServer(function(input, output, session) {
   observe({
     req(object_I())
     if (object_I()$bool$degrade) {
-      shinyjs::show("msgLight")
+      show("msgLight")
 
-      shinyjs::hide("alternative")
-      shinyjs::hide("numB")
-      shinyjs::hide("refFamily")
-      shinyjs::hide("inputK")
+      hide("alternative")
+      hide("numB")
+      hide("refFamily")
+      hide("inputK")
     } else {
-      shinyjs::hide("msgLight")
+      hide("msgLight")
 
-      shinyjs::show("alternative")
-      shinyjs::show("numB")
-      shinyjs::show("refFamily")
-      shinyjs::show("inputK")
+      show("alternative")
+      show("numB")
+      show("refFamily")
+      show("inputK")
     }
   })
 
@@ -1091,9 +1093,9 @@ shinyServer(function(input, output, session) {
 
   # while buttonValidate is not clicked, these buttons are hidden
   observeEvent(input$buttonValidate, {
-    shinyjs::show("downloadPHBTable")
-    shinyjs::show("resetCSV")
-    shinyjs::show("downloadData")
+    show("downloadPHBTable")
+    show("resetCSV")
+    show("downloadData")
   })
 
 

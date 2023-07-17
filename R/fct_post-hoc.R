@@ -54,7 +54,8 @@ curveMaxFP <- function(p.values, thr) {
   Vbar
 }
 
-#' Post hoc confidence bounds on the true/false positives from An object of class 'SansSouci'
+#' Post hoc confidence bounds on the true/false positives from An object
+#' of class 'SansSouci'
 #'
 #' Imported from sanssouci package.
 #'
@@ -63,16 +64,22 @@ curveMaxFP <- function(p.values, thr) {
 #' @param what A character vector, the names of the post hoc bounds to be
 #'   computed, among:
 #'
-#' - FP: Upper bound on the number of false positives in the 'x' most significant items
-#' - TP: Lower bound on the number of true positives in the 'x' most significant items
-#' - FDP: Upper bound on the proportion of false positives in the 'x' most significant items
-#' - TP: Lower bound on the proportion of true positives in the 'x' most significant items
+#' - FP: Upper bound on the number of false positives in the 'x' most
+#' significant items
+#' - TP: Lower bound on the number of true positives in the 'x' most
+#' significant items
+#' - FDP: Upper bound on the proportion of false positives in the 'x' most
+#'  significant items
+#' - TP: Lower bound on the proportion of true positives in the 'x' most
+#' significant items
 #'
 #' Defaults to `c("TP", "FDP")`
-#' @param all A logical value: should the bounds for all ordered subsets of `S` be returned? If `FALSE` (the default), only the bound for `S` is returned
+#' @param all A logical value: should the bounds for all ordered subsets of `S`
+#'  be returned? If `FALSE` (the default), only the bound for `S` is returned
 #' @param ... Not used
 #'
-#' @return If `all` is `FALSE` (the default), only the value of the bound is returned. Otherwise, a `data.frame` is return, with |S| rows and 4 columns:
+#' @return If `all` is `FALSE` (the default), only the value of the bound is
+#'  returned. Otherwise, a `data.frame` is return, with |S| rows and 4 columns:
 #' - x: Number of most significant items selected
 #' - label: Label for the procedure, typically of the form 'family(param)'
 #' - bound: Value of the post hoc bound
@@ -87,7 +94,8 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
   if (max(S) > nHyp(object)) {
     stop("'S' is not a subset of hypotheses")
   }
-  bounds <- posthoc_bound2(p.values, S = S, thr = thr, lab = lab, what = what, all = all)
+  bounds <- posthoc_bound2(p.values, S = S, thr = thr, lab = lab,
+                           what = what, all = all)
   if (!all) {
     bounds <- bounds[, "bound"]
     if (length(bounds) > 1) {
@@ -108,15 +116,21 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
 #' @param what A character vector, the names of the post hoc bounds to be
 #'   computed, among:
 #'
-#' - FP: Upper bound on the number of false positives in the 'x' most significant items
-#' - TP: Lower bound on the number of true positives in the 'x' most significant items
-#' - FDP: Upper bound on the proportion of false positives in the 'x' most significant items
-#' - TP: Lower bound on the proportion of true positives in the 'x' most significant items
+#' - FP: Upper bound on the number of false positives in the 'x' most
+#' significant items
+#' - TP: Lower bound on the number of true positives in the 'x' most
+#'  significant items
+#' - FDP: Upper bound on the proportion of false positives in the 'x' most
+#' significant items
+#' - TP: Lower bound on the proportion of true positives in the 'x' most
+#'  significant items
 #'
 #' Defaults to `c("TP", "FDP")`
-#' @param all A logical value: should the bounds for all ordered subsets of `S` be returned? If `FALSE` (the default), only the bound for `S` is returned
+#' @param all A logical value: should the bounds for all ordered subsets of `S`
+#'  be returned? If `FALSE` (the default), only the bound for `S` is returned
 #'
-#' @return If `all` is `FALSE` (the default), only the value of the bound is returned. Otherwise, a `data.frame` is return, with |S| rows and 4 columns:
+#' @return If `all` is `FALSE` (the default), only the value of the bound is
+#'  returned. Otherwise, a `data.frame` is return, with |S| rows and 4 columns:
 #' - x: Number of most significant items selected
 #' - label: Label for the procedure, typically of the form 'family(param)'
 #' - bound: Value of the post hoc bound
@@ -125,7 +139,8 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
 #' @export
 #' @importFrom stats predict
 #' @import sanssouci
-posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = NULL,
+posthoc_bound2 <- function(p.values, S = seq_along(p.values),
+                           thr = NULL, lab = NULL,
                            what = c("TP", "FDP"), all = FALSE) {
   if (is.null(thr)) {
     stop("Argument 'thr' must be non NULL")
@@ -171,7 +186,8 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values), thr = NULL, lab = 
 #' @export
 #' @importFrom shiny incProgress
 boundGroup2 <- function(object) {
-  table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(), "FDP&le;" = c(), check.names = FALSE)
+  table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(),
+                      "FDP&le;" = c(), check.names = FALSE)
   bioFun <- object$input$biologicalFunc
   if (class(bioFun)[1] == "list") {
     print("on passe ici")
@@ -215,31 +231,36 @@ boundGroup2 <- function(object) {
 formatBounds <- function(max_FP, idxs = seq_len(max_FP), lab = NULL,
                          what = c("TP", "FDP"), all = FALSE) {
   stopifnot(length(max_FP) == length(idxs))
-  max_FDP <- max_FP/idxs
+  max_FDP <- max_FP / idxs
   what0 <- c("FP", "TP", "FDP", "TDP")
   if (!all(what %in% what0)) {
-    stop("Error in argument 'what': only the following statistics are supported: ", paste(what0, collapse = ", "))
+    stop("Error in argument 'what': only the following statistics are
+         supported: ",
+         paste(what0, collapse = ", "))
   }
   if (length(max_FP) == 0) {
-    if (all) {   # output should be empty (no subsets of positive size)
+    if (all) { # output should be empty (no subsets of positive size)
       mat <- matrix(NA, nrow = 0, ncol = 4)
       colnames(mat) <- c("x", "label", "stat", "bound")
       bounds <- as.data.frame(mat)
       return(bounds)
-    } else {     # output should not be empty (number of FP in empty set is 0)
+    } else { # output should not be empty (number of FP in empty set is 0)
       idxs <- 0
       max_FP <- 0 # number of FP in empty set is 0
       max_FDP <- 0 # FDP in empty set is 0
     }
   }
-  annot <- data.frame(x = idxs,
-                      label = lab,
-                      row.names = NULL)
+  annot <- data.frame(
+    x = idxs,
+    label = lab,
+    row.names = NULL
+  )
   boundsList <- list(
     FP = cbind(annot, stat = "FP", bound = max_FP),
     TP = cbind(annot, stat = "TP", bound = idxs - max_FP),
     FDP = cbind(annot, stat = "FDP", bound = max_FDP),
-    TDP = cbind(annot, stat = "TDP", bound = 1 - max_FDP))
+    TDP = cbind(annot, stat = "TDP", bound = 1 - max_FDP)
+  )
   boundsList <- boundsList[what]
   if (!all) {
     boundsList <- lapply(boundsList, FUN = function(x) x[length(idxs), ])

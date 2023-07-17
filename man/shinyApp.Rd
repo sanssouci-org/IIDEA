@@ -7,7 +7,8 @@
 shinyApp()
 }
 \value{
-An object that represents the app. Printing the object or passing it to runApp() will run the app.
+An object that represents the app. Printing the object or passing
+it to runApp() will run the app.
 }
 \description{
 Open IIDEA

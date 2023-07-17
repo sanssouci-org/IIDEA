@@ -67,8 +67,10 @@ cleanMatrix <- function(matrixFunc) {
       text <- "The matrix contains textual variable. We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
-      return(list(data = matrixFunc, text = text,
-                  boolValidation = boolValidation, color = color))
+      return(list(
+        data = matrixFunc, text = text,
+        boolValidation = boolValidation, color = color
+      ))
     }
   }
 
@@ -79,9 +81,11 @@ cleanMatrix <- function(matrixFunc) {
       colnam[colnam == valueColnam[1]] <- 0
       colnam[colnam == valueColnam[2]] <- 1
       colnames(matrixFunc) <- colnam
-      text <- paste("The colnames of your matrix does not contains 0 or 1.
+      text <- paste(
+        "The colnames of your matrix does not contains 0 or 1.
                     We consider that", valueColnam[1],
-                    "becomes 0 and ", valueColnam[2], " becomes 1")
+        "becomes 0 and ", valueColnam[2], " becomes 1"
+      )
       boolValidation <- TRUE
       color <- "color:orange"
     }
@@ -91,8 +95,10 @@ cleanMatrix <- function(matrixFunc) {
     text <- "The column names of your data contains more (or less) than
     2 categories. Please use {0, 1} for the colnames of your matrix."
   }
-  return(list(data = matrixFunc, text = text, boolValidation = boolValidation,
-              color = color))
+  return(list(
+    data = matrixFunc, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }
 
 #' Clean gene set matrix gived by user
@@ -122,8 +128,10 @@ cleanBiofun <- function(biofun) {
       We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
-      return(list(biofun = biofun, text = text, boolValidation = boolValidation,
-                  color = color))
+      return(list(
+        biofun = biofun, text = text, boolValidation = boolValidation,
+        color = color
+      ))
     }
   }
 
@@ -133,8 +141,10 @@ cleanBiofun <- function(biofun) {
     color <- "color:red"
   }
 
-  return(list(biofun = biofun, text = text, boolValidation = boolValidation,
-              color = color))
+  return(list(
+    biofun = biofun, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }
 
 #' Check if genes in gene set match with a gene set list
@@ -163,6 +173,8 @@ matchMatrixBiofun <- function(geneNames, biofun) {
     color <- "color:green"
   }
 
-  return(list(biofun = biofun, text = text, boolValidation = boolValidation,
-              color = color))
+  return(list(
+    biofun = biofun, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }

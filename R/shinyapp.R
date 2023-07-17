@@ -8,7 +8,8 @@
 #' @import DT
 #' @import ggplot2
 #' @import htmlwidgets
-#' @import plotly
+#' @importFrom plotly renderPlotly
+#' @importFrom plotly plotlyOutput
 #' @import R.cache
 #' @import shinyBS
 #' @import shinyjs

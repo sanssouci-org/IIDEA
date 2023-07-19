@@ -50,6 +50,8 @@ exampleData <- function() {
 #' from string-db.
 #'
 #' @return a character, the url for string-db.org
+#'
+#' @export
 UrlStringdbGrah <- function(vector) {
   vector[2:length(vector)] <- paste0("%0d", vector[2:length(vector)])
   url <- paste("https://string-db.org/api/image/network?identifiers=",
@@ -63,6 +65,7 @@ UrlStringdbGrah <- function(vector) {
 #'
 #' @return charactor of html balise
 #' @importFrom stringr str_extract_all
+#' @export
 #'
 addUrlLink <- function(name) {
   if (grepl("GO:\\d+", name)) {

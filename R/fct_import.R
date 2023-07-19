@@ -3,6 +3,7 @@
 #' @param go.gs data frame from go.gs
 #'
 #' @return a list of cleaned data set
+#' @export
 #' @importFrom shiny incProgress
 cleanGo.GS <- function(go.gs) {
   for (i in names(go.gs)) {
@@ -157,8 +158,9 @@ cleanBiofun <- function(biofun) {
 #' @details Check if there is at least one gene in gene set match with genes
 #' in expression matrix.  The color of the message means:
 #' green: non genes match
-#' blue: everything is ok. Thanks ;)
+#' blue: everything is ok.
 #'
+#' @export
 matchMatrixBiofun <- function(geneNames, biofun) {
   text <- ""
   boolValidation <- TRUE

@@ -261,7 +261,7 @@ shinyServer(function(input, output, session) {
               check.names = FALSE
             )
             T2 <- Sys.time()
-            print(paste("read gene set", T2 - T1))
+            # print(paste("read gene set", T2 - T1))
             setProgress(value = 0.8, detail = "Cleaning of gene set data ...")
             cleanBio <- cleanBiofun(bioFun) # cleaning and message error
 
@@ -479,7 +479,7 @@ shinyServer(function(input, output, session) {
 
 
         t2 <- Sys.time()
-        print(paste("calibration :", difftime(t2, t1)))
+        # print(paste("calibration :", difftime(t2, t1)))
         setProgress(value = 0.7, detail = "Done")
       })
     } else { # light version
@@ -1113,8 +1113,8 @@ shinyServer(function(input, output, session) {
       req(data()$input$biologicalFunc)
       table <- boundGroup2(req(data()))
       T2 <- Sys.time()
-      print("post hoc bounds on gene set:")
-      print(difftime(T2, T1))
+      # print("post hoc bounds on gene set:")
+      # print(difftime(T2, T1))
     })
     return(table)
   })
@@ -1189,7 +1189,7 @@ shinyServer(function(input, output, session) {
   output$tableBoundsGroup <- renderDT(
     {
       table <- filteredTableBoundsGroup()
-      table[["FDP≤"]] <- round(table[["FDP≤"]], 2)
+      table[["FDP&le;"]] <- round(table[["FDP&le;"]], 2)
       table
     },
     selection = "single",
@@ -1214,7 +1214,7 @@ shinyServer(function(input, output, session) {
 
     group <- req(userDTselectPrio())
     bioFun <- data()$input$biologicalFunc
-    if (class(bioFun) == "list") {
+    if (inherits(bioFun, "list")) {
       ids <- bioFun[[group]]
     } else {
       ids <- which(bioFun[, group] == 1)
@@ -1235,7 +1235,6 @@ shinyServer(function(input, output, session) {
     )
     lte <- "≤"
     gte <- "≥"
-    print("Priori()")
     plot_ly(data.frame(x = foldChanges(data()), y = data()$output$logp),
       x = ~x, y = ~y,
       marker = list(

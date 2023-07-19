@@ -21,5 +21,5 @@ Check if genes in gene set match with a gene set list
 Check if there is at least one gene in gene set match with genes
 in expression matrix.  The color of the message means:
 green: non genes match
-blue: everything is ok. Thanks ;)
+blue: everything is ok.
 }

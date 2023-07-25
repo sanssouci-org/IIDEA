@@ -1,0 +1,13 @@
+shiny
+shinyjs
+dplyr
+htmlwidgets
+DT
+shinyBS
+stringr
+R.cache
+plotly
+ggplot2
+pneuvial/sansSouci
+bioconductor/GSEABenchmarkeR
+bioconductor/EnrichmentBrowser

@@ -2,7 +2,8 @@
 % Please edit documentation in R/fct_post-hoc.R
 \name{predict2}
 \alias{predict2}
-\title{Post hoc confidence bounds on the true/false positives from An object of class 'SansSouci'}
+\title{Post hoc confidence bounds on the true/false positives from An object
+of class 'SansSouci'}
 \usage{
 predict2(
   object,
@@ -20,20 +21,26 @@ predict2(
 \item{what}{A character vector, the names of the post hoc bounds to be
 computed, among:
 \itemize{
-\item FP: Upper bound on the number of false positives in the 'x' most significant items
-\item TP: Lower bound on the number of true positives in the 'x' most significant items
-\item FDP: Upper bound on the proportion of false positives in the 'x' most significant items
-\item TP: Lower bound on the proportion of true positives in the 'x' most significant items
+\item FP: Upper bound on the number of false positives in the 'x' most
+significant items
+\item TP: Lower bound on the number of true positives in the 'x' most
+significant items
+\item FDP: Upper bound on the proportion of false positives in the 'x' most
+significant items
+\item TP: Lower bound on the proportion of true positives in the 'x' most
+significant items
 }
 
 Defaults to \code{c("TP", "FDP")}}
 
-\item{all}{A logical value: should the bounds for all ordered subsets of \code{S} be returned? If \code{FALSE} (the default), only the bound for \code{S} is returned}
+\item{all}{A logical value: should the bounds for all ordered subsets of \code{S}
+be returned? If \code{FALSE} (the default), only the bound for \code{S} is returned}
 
 \item{...}{Not used}
 }
 \value{
-If \code{all} is \code{FALSE} (the default), only the value of the bound is returned. Otherwise, a \code{data.frame} is return, with |S| rows and 4 columns:
+If \code{all} is \code{FALSE} (the default), only the value of the bound is
+returned. Otherwise, a \code{data.frame} is return, with |S| rows and 4 columns:
 \itemize{
 \item x: Number of most significant items selected
 \item label: Label for the procedure, typically of the form 'family(param)'

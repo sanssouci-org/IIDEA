@@ -3,6 +3,8 @@
 #' @param go.gs data frame from go.gs
 #'
 #' @return a list of cleaned data set
+#' @export
+#' @importFrom shiny incProgress
 cleanGo.GS <- function(go.gs) {
   for (i in names(go.gs)) {
     incProgress(1 / length(go.gs))
@@ -19,6 +21,7 @@ cleanGo.GS <- function(go.gs) {
 #' @param ... other parameter for read.csv function
 #'
 #' @return a dataframe containing the dataset from the csv file
+#' @importFrom utils read.csv
 #' @export
 readCSV_sep <- function(file, ...) {
   df <- read.csv(file, sep = c(","), ...)
@@ -33,7 +36,8 @@ readCSV_sep <- function(file, ...) {
   if (dim(df)[2] > 1) {
     return(df)
   }
-  stop("Only ',', ';', '\\t' separators are allowed. Please adapte your csv file.")
+  stop("Only ',', ';', '\\t' separators are allowed.
+       Please adapte your csv file.")
 }
 
 
@@ -43,10 +47,12 @@ readCSV_sep <- function(file, ...) {
 #'
 #' @param matrixFunc a matrix for expression genes
 #'
-#' @return a list with the cleaned matrix, a text for error, a bool for error and the color of the error
+#' @return a list with the cleaned matrix, a text for error,
+#' a bool for error and the color of the error
 #'
 #' @details Clean the user matrix for IIDEA requirement. If the matrix does not
-#' respect the requirement, an error is signaled. The color of the message means:
+#' respect the requirement, an error is signaled.
+#' The color of the message means:
 #' red: the matrix can be used
 #' orange: the matrix doesnt respect but IIDEA update it and can be used
 #' blue: everything is ok. Thanks ;)
@@ -57,12 +63,15 @@ cleanMatrix <- function(matrixFunc) {
   boolValidation <- TRUE
   color <- "color:blue"
 
-  for (i in 1:length(matrixFunc)) {
+  for (i in seq_along(matrixFunc)) {
     if (!is.numeric(matrixFunc[, i])) {
       text <- "The matrix contains textual variable. We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
-      return(list(data = matrixFunc, text = text, boolValidation = boolValidation, color = color))
+      return(list(
+        data = matrixFunc, text = text,
+        boolValidation = boolValidation, color = color
+      ))
     }
   }
 
@@ -73,26 +82,36 @@ cleanMatrix <- function(matrixFunc) {
       colnam[colnam == valueColnam[1]] <- 0
       colnam[colnam == valueColnam[2]] <- 1
       colnames(matrixFunc) <- colnam
-      text <- paste("The colnames of your matrix does not contains 0 or 1.We consider that", valueColnam[1], "becomes 0 and ", valueColnam[2], " becomes 1")
+      text <- paste(
+        "The colnames of your matrix does not contains 0 or 1.
+                    We consider that", valueColnam[1],
+        "becomes 0 and ", valueColnam[2], " becomes 1"
+      )
       boolValidation <- TRUE
       color <- "color:orange"
     }
   } else {
     boolValidation <- FALSE
     color <- "color:red"
-    text <- "The column names of your data contains more (or less) than 2 categories. Please use {0, 1} for the colnames of your matrix."
+    text <- "The column names of your data contains more (or less) than
+    2 categories. Please use {0, 1} for the colnames of your matrix."
   }
-  return(list(data = matrixFunc, text = text, boolValidation = boolValidation, color = color))
+  return(list(
+    data = matrixFunc, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }
 
 #' Clean gene set matrix gived by user
 #'
 #' @param biofun a matrix for gene sets
 #'
-#' @return a list with the cleaned matrix, a text for error, a bool for error and the color of the error
+#' @return a list with the cleaned matrix, a text for error,
+#' a bool for error and the color of the error
 #'
 #' @details Clean the user matrix for IIDEA requirement. If the matrix does not
-#' respect the requirement, an error is signaled. The color of the message means:
+#' respect the requirement, an error is signaled.
+#'  The color of the message means:
 #' red: the matrix can be used
 #' orange: the matrix doesnt respect but IIDEA update it and can be used
 #' blue: everything is ok. Thanks ;)
@@ -104,12 +123,16 @@ cleanBiofun <- function(biofun) {
   color <- "color:blue"
 
   # if biofun cotains at least one textual variable
-  for (i in 1:length(biofun)) {
+  for (i in seq_along(biofun)) {
     if (!is.numeric(biofun[, i])) {
-      text <- "The gene set matrix contains textual variable. We cannot use them."
+      text <- "The gene set matrix contains textual variable.
+      We cannot use them."
       boolValidation <- FALSE
       color <- "color:red"
-      return(list(biofun = biofun, text = text, boolValidation = boolValidation, color = color))
+      return(list(
+        biofun = biofun, text = text, boolValidation = boolValidation,
+        color = color
+      ))
     }
   }
 
@@ -119,7 +142,10 @@ cleanBiofun <- function(biofun) {
     color <- "color:red"
   }
 
-  return(list(biofun = biofun, text = text, boolValidation = boolValidation, color = color))
+  return(list(
+    biofun = biofun, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }
 
 #' Check if genes in gene set match with a gene set list
@@ -132,8 +158,9 @@ cleanBiofun <- function(biofun) {
 #' @details Check if there is at least one gene in gene set match with genes
 #' in expression matrix.  The color of the message means:
 #' green: non genes match
-#' blue: everything is ok. Thanks ;)
+#' blue: everything is ok.
 #'
+#' @export
 matchMatrixBiofun <- function(geneNames, biofun) {
   text <- ""
   boolValidation <- TRUE
@@ -142,10 +169,14 @@ matchMatrixBiofun <- function(geneNames, biofun) {
   mm <- match(rownames(biofun), geneNames)
   biofun <- biofun[mm, ]
   if (all(is.na(mm))) {
-    text <- "None of the lines of the gene set matrix correspond to the lines of the gene expression data matrix."
+    text <- "None of the lines of the gene set matrix correspond to the lines of
+    the gene expression data matrix."
     boolValidation <- FALSE
     color <- "color:green"
   }
 
-  return(list(biofun = biofun, text = text, boolValidation = boolValidation, color = color))
+  return(list(
+    biofun = biofun, text = text, boolValidation = boolValidation,
+    color = color
+  ))
 }

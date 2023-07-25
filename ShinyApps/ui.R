@@ -1,8 +1,8 @@
 library("shiny")
 library("shinyjs")
-library("plotly")
 library("sanssouci")
 library("sanssouci.data")
+library("plotly")
 stopifnot(packageVersion("sanssouci.data") >= "0.5.0")
 library("ggplot2")
 library("dplyr")
@@ -11,29 +11,31 @@ library("DT")
 library("shinyBS")
 library("stringr")
 library("R.cache")
-# library("GSEABenchmarkeR")
-
-# library("hgu133plus2.db")
 
 
 
-data(expr_ALL, package = "sanssouci.data")
-data(expr_ALL_GO, package = "sanssouci.data")
-data(RNAseq_blca, package = "sanssouci.data")
+data(expr_ALL, package = "sanssouci.data", envir = environment())
+data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
+data(RNAseq_blca, package = "sanssouci.data", envir = environment())
+
 
 shinyUI(fluidPage(
   useShinyjs(),
   includeCSS("www/style.css"),
 
   # Application title
-  titlePanel("IIDEA: Interactive Inference for Differential Expression Analyses"),
+  titlePanel(
+    "IIDEA: Interactive Inference for Differential Expression Analyses"
+  ),
   # Sidebar with panel
   sidebarLayout(
     sidebarPanel(
       tags$table(
         style = "width: 100%",
         tags$tr(
-          tags$td( # style = "width: 50%",
+
+          tags$td(
+
             align = "center",
             htmlOutput("help")
           ),
@@ -50,6 +52,7 @@ shinyUI(fluidPage(
           )
         )
       ),
+
       selectInput("choiceTypeData",
         label = "Choose the type of data",
         choices = c(
@@ -57,6 +60,7 @@ shinyUI(fluidPage(
           "bulk RNAseq" = "rnaseq"
         )
       ),
+
       conditionalPanel(
         condition = "input.checkboxDemo",
         uiOutput("choiceGSEAUI")
@@ -72,11 +76,19 @@ shinyUI(fluidPage(
               style = "info",
               size = "extra-small"
             ),
-            actionButton("resetInputData", icon("trash"))
+
+            actionButton(
+              "resetInputData",
+              icon("trash")
+            )
           ),
           accept = ".csv"
         ),
-        bsTooltip("QfileData", "Upload a CSV file containing matrix with genes in rows and samples in column. Column names should be in (in {0, 1})",
+        bsTooltip("QfileData",
+          "Upload a CSV file containing matrix with genes
+                                 in rows and samples in column.
+                                 Column names should be in (in {0, 1})",
+
           "right",
           options = list(container = "body"),
           trigger = "hover"
@@ -84,9 +96,11 @@ shinyUI(fluidPage(
       ),
       conditionalPanel(
         condition = "!input.checkboxDemo",
+
         # splitLayout(
         #   fileInput("fileAnnotation", label = p("Input gene annotation",
         #                                         bsButton("QfileAnnotation", label = "", icon = icon("question"), style = "info", size = "extra-small"))),
+
         fileInput("fileGroup",
           label = p(
             "Gene set matrix",
@@ -96,25 +110,36 @@ shinyUI(fluidPage(
               style = "info",
               size = "extra-small"
             ),
-            actionButton("resetInputGroup", icon("trash"))
+
+            actionButton(
+              "resetInputGroup",
+              icon("trash")
+            )
           ),
           accept = ".csv"
         ),
-        # ),
-        # bsTooltip(id = "QfileAnnotation", title = 'Upload a CSV file containing matrix within two columns. One called "Id" contains index label from matrix and the other, called "nameGene", contains names of associated genes.', placement = "bottom",  options = list(container = "body"), trigger = "focus"),
         bsTooltip(
           id = "QfileGroup",
-          title = "Upload a csv file containing matrix within nameGenes in line index. Binary vector composed this matrix for each gene set.",
+          title = "Upload a csv file containing matrix
+                                 within nameGenes in line index. Binary vector
+                                 composed this matrix for each gene set.",
+
           placement = "bottom",
           trigger = "hover",
           options = NULL
         ),
-        downloadButton("downloadExampleData", "Download example data set")
+
+        downloadButton(
+          "downloadExampleData",
+          "Download example data set"
+        )
+
       ),
       sliderInput("sliderConfLevel",
         "Confidence level",
         min = 0,
         max = 100, value = 90, post = " %"
+
       ),
       checkboxInput("checkboxAdvancedParam",
         label = p("Advanced parameters"),
@@ -156,6 +181,7 @@ shinyUI(fluidPage(
         ),
         uiOutput("teststatUI")
       ),
+
       verbatimTextOutput("sorti"),
       conditionalPanel(
         condition = "input.buttonValidate != 0",
@@ -170,7 +196,14 @@ shinyUI(fluidPage(
                 width = 12
               )
             ),
-            shinyjs::hidden(downloadButton("downloadPHBTable", "Download post hoc bound table"))
+
+            hidden(
+              downloadButton(
+                "downloadPHBTable",
+                "Download post hoc bound table"
+              )
+            )
+
           ),
           tabPanel("Gene sets",
             value = 2,
@@ -185,8 +218,12 @@ shinyUI(fluidPage(
             ),
             uiOutput("errorMatch"),
             DTOutput("tableBoundsGroup"),
-            # shinyjs::hidden(downloadButton("downloadPHBTableGroup", "Download post hoc bound table") ))
-            downloadButton("downloadPHBTableGroup", "Download post hoc bound table")
+
+            downloadButton(
+              "downloadPHBTableGroup",
+              "Download post hoc bound table"
+            )
+
           )
         )
       ),
@@ -194,21 +231,32 @@ shinyUI(fluidPage(
 
     # Main panel
     mainPanel(
-      # verbatimTextOutput("outThresholds"),
-      # verbatimTextOutput("outbioFun"),
-      # verbatimTextOutput("outThrBioFun"),
-      # verbatimTextOutput("watch"),
+
       uiOutput("errorInput"),
       conditionalPanel(
         condition = "input.buttonValidate != 0",
         h2("Volcano plot",
-          bsButton("Qparam1", label = "", icon = icon("question"), style = "info", size = "extra-small"),
+
+          bsButton("Qparam1",
+            label = "",
+            icon = icon("question"), style = "info",
+            size = "extra-small"
+          ),
+
           align = "center"
         ),
         bsPopover(
           id = "Qparam1",
           title = "VolcanoPlot",
-          content = paste('Select genes by dragging horizontal or vertical bars, of using "box select" or "lasso select" from the plot menu. The table in the left panel gives post-hoc bounds for these selections.'),
+
+          content = paste('Select genes by dragging
+                                                  horizontal or vertical bars,
+                                                  of using "box select" or
+                                                  "lasso select" from the plot
+                                                  menu. The table in the left
+                                                  panel gives post-hoc bounds
+                                                  for these selections.'),
+
           placement = "bottom",
           trigger = "hover",
           options = NULL
@@ -229,27 +277,31 @@ shinyUI(fluidPage(
           ),
           uiOutput("msgURLds")
         )
+
       ),
       conditionalPanel(
         condition = "input.tabSelected==1",
-        plotly::plotlyOutput("volcanoplotPosteriori", height = "600px"),
+        plotly::plotlyOutput("volcanoplotPosteriori",
+          height = "600px"
+        ),
         fluidRow(
-          shinyjs::hidden(actionButton("resetCSV", "Reset Selections")),
-          shinyjs::hidden(downloadButton("downloadData", "Download csv file with user selection"))
+          shinyjs::hidden(actionButton(
+            "resetCSV",
+            "Reset Selections"
+          )),
+          shinyjs::hidden(downloadButton(
+            "downloadData",
+            "Download csv file with user selection"
+          ))
         )
       ),
-
-      # splitLayout(
-      #   plotlyOutput("curveMaxFPBoth"),
-      #   plotlyOutput("curveMaxFPSelect")
-      # )),
-      #
-
       conditionalPanel(
         condition = "input.tabSelected==2",
         uiOutput("errorBioMatrix"),
-        plotly::plotlyOutput("volcanoplotPriori", height = "600px")
-        # plotlyOutput(outputId = "curveMaxFPGroup")
+        plotly::plotlyOutput("volcanoplotPriori",
+          height = "600px"
+        )
+
       )
     )
   ),
@@ -257,16 +309,37 @@ shinyUI(fluidPage(
     "This interactive ",
     a("shiny", href = "https://shiny.rstudio.com", target = "_blank"),
     "application is developed by",
-    "Nicolas Enjalbert-Courrech",
+
+    a("Nicolas Enjalbert-Courrech",
+      href = "https://nicolas-enjalbert.github.io/",
+      target = "_blank"
+    ),
     "and",
-    a("Pierre Neuvial", href = "https://www.math.univ-toulouse.fr/~pneuvial/", target = "_blank"),
+    a("Pierre Neuvial",
+      href = "https://www.math.univ-toulouse.fr/~pneuvial/",
+      target = "_blank"
+    ),
     "for the R package ",
-    a("sanssouci.", href = "https://sanssouci-org.github.io/sanssouci/", target = "_blank"),
-    "It implements permutation-based post hoc inference bounds for differential gene expression analysis, see dedicated ",
-    a("vignette.", href = "https://sanssouci-org.github.io/sanssouci/articles/post-hoc_differential-expression.html", target = "_blank"),
+    a("sanssouci.",
+      href = "https://sanssouci-org.github.io/sanssouci/",
+      target = "_blank"
+    ),
+    "It implements permutation-based post hoc inference bounds for
+       differential gene expression analysis, see dedicated ",
+    a("vignette.",
+      href = "https://sanssouci-org.github.io/sanssouci/articles/post-hoc_differential-expression.html",
+      target = "_blank"
+    ),
     "The ",
-    a("source code", href = "https://github.com/sanssouci-org/sanssouci/tree/develop/inst/shiny-examples/volcano-plot", target = "_blank"),
+    a("source code",
+      href = "https://github.com/sanssouci-org/sanssouci/tree/develop/inst/shiny-examples/volcano-plot",
+      target = "_blank"
+    ),
     "for this app is freely available. For any question, please file an",
-    a("issue.", href = "https://github.com/sanssouci-org/sanssouci/issues", target = "_blank")
+    a("issue.",
+      href = "https://github.com/sanssouci-org/sanssouci/issues",
+      target = "_blank"
+    )
+
   ))
 ))

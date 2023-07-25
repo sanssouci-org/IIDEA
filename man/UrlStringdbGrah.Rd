@@ -7,7 +7,8 @@
 UrlStringdbGrah(vector)
 }
 \arguments{
-\item{vector}{a vector of gene names use for the gene networks from string-db.}
+\item{vector}{a vector of gene names use for the gene networks
+from string-db.}
 }
 \value{
 a character, the url for string-db.org

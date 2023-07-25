@@ -15,7 +15,7 @@ Imports:
     htmlwidgets,
     plotly,
     R.cache,
-    sanssouci,
+    sanssouci (>= 0.12.9),
     sanssouci.data,
     shiny,
     shinyBS,

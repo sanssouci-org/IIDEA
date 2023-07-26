@@ -107,7 +107,7 @@ shinyServer(function(input, output, session) {
       paste("ExampleData", "zip", sep = ".")
     },
     content = function(fname) {
-      exampleData <- exampleData()
+      exampleData <- exampleData(req(input$choiceTypeData))
       fs <- c()
       tmpdir <- tempdir()
       setwd(tempdir())

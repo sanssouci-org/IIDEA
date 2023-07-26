@@ -2,6 +2,8 @@ utils::globalVariables(c("expr_ALL", "expr_ALL_GO"))
 
 #' Create example data set
 #'
+#' @param type character data type
+#'
 #' @details Create example data set from the package sanssouci.data.
 #' This dataframe aims at exporting in IIDEA (not to be used by IIDEA as public
 #' data set)
@@ -12,35 +14,64 @@ utils::globalVariables(c("expr_ALL", "expr_ALL_GO"))
 #' @import sanssouci
 #'
 #' @examples
-#' exampleData()
-exampleData <- function() {
-  if (!exists("expr_ALL")) {
-    data(expr_ALL, package = "sanssouci.data", envir = environment())
+#' exampleData(type = "microarrays")
+exampleData <- function(type) {
+
+  if (type ==  "microarrays"){
+    if (!exists("expr_ALL")) {
+      data(expr_ALL, package = "sanssouci.data", envir = environment())
+    }
+    if (!exists("expr_ALL_GO")) {
+      data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
+    }
+    #### expression matrix
+    data <- list()
+    data$matrix <- expr_ALL
+
+    categ <- colnames(data$matrix)
+    data$categ <- rep(1, length(categ))
+    data$categ[which(categ == "NEG")] <- 0
+
+    colnames(data$matrix) <- data$categ
+
+    #### degraded matrix
+    dex <- rowWelchTests(data$matrix, data$categ)
+    data$degrade <- data.frame("p.value" = dex[["p.value"]], "fc" = dex$estimate)
+    rm(dex)
+
+    # gene set matrix
+    bioFun <- expr_ALL_GO
+    mm <- match(base::rownames(bioFun), base::rownames(data$matrix))
+    data$biologicalFunc <- bioFun[mm, ]
+    rm(bioFun)
+    return(data)
+  } else if (type == "rnaseq") {
+    if (!exists("RNAseq_blca")) {
+      data(RNAseq_blca, package = "sanssouci.data", envir = environment())
+    }
+
+    #### expression matrix
+    data <- list()
+    data$matrix <- RNAseq_blca
+
+    categ <- colnames(data$matrix)
+    data$categ <- rep(1, length(categ))
+    data$categ[which(categ == "II")] <- 0
+
+    colnames(data$matrix) <- data$categ
+
+    #### degraded matrix
+    dex <- rowWilcoxonTests(data$matrix, data$categ)
+    data$degrade <- data.frame("p.value" = dex[["p.value"]], "fc" = dex$estimate)
+    rm(dex)
+
+    # gene set matrix
+    bioFun <- RNAseq_blca_GO(RNAseq_blca)
+    mm <- match(base::rownames(bioFun), base::rownames(data$matrix))
+    data$biologicalFunc <- bioFun[mm, ]
+    rm(bioFun)
+    return(data)
   }
-  if (!exists("expr_ALL_GO")) {
-    data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
-  }
-  #### expression matrix
-  data <- list()
-  data$matrix <- expr_ALL
-
-  categ <- colnames(data$matrix)
-  data$categ <- rep(1, length(categ))
-  data$categ[which(categ == "NEG")] <- 0
-
-  colnames(data$matrix) <- data$categ
-
-  #### degraded matrix
-  dex <- rowWelchTests(data$matrix, data$categ)
-  data$degrade <- data.frame("p.value" = dex[["p.value"]], "fc" = dex$estimate)
-  rm(dex)
-
-  # gene set matrix
-  bioFun <- expr_ALL_GO
-  mm <- match(base::rownames(bioFun), base::rownames(data$matrix))
-  data$biologicalFunc <- bioFun[mm, ]
-  rm(bioFun)
-  return(data)
 }
 
 

@@ -4,7 +4,10 @@
 \alias{exampleData}
 \title{Create example data set}
 \usage{
-exampleData()
+exampleData(type)
+}
+\arguments{
+\item{type}{character data type}
 }
 \description{
 Create example data set
@@ -15,5 +18,5 @@ This dataframe aims at exporting in IIDEA (not to be used by IIDEA as public
 data set)
 }
 \examples{
-exampleData()
+exampleData(type = "microarrays")
 }

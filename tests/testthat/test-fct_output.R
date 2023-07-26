@@ -1,4 +1,4 @@
 test_that("exampledata", {
-  data <- exampleData()
+  data <- exampleData(type = "microarrays")
   expect_equal(length(data), 4)
 })

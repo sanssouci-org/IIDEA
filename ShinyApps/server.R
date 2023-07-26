@@ -246,7 +246,15 @@ shinyServer(function(input, output, session) {
 
               matrix <- rawData
 
-              categ <- colnames(rawData)
+              CPM <- matrix / colSums(matrix) * 1e6
+              # plot(density(rowMaxs(log(1 + CPM))))
+              row_maxs <- matrixStats::rowMaxs(CPM)
+              ww <- which(row_maxs < 10)
+              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM), prob = 0.75)
+              ww <- which(row_quantiles < log(1 + 5))
+              matrix <- log(1 + CPM[-ww, ])
+
+              categ <- colnames(matrix)
               object <- SansSouci(Y = matrix, groups = as.numeric(categ))
               setProgress(value = 0.7, detail = "GSEA data set ...")
 

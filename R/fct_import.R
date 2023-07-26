@@ -180,3 +180,70 @@ matchMatrixBiofun <- function(geneNames, biofun) {
     color = color
   ))
 }
+
+
+#' Build gene set for BLCA RNAseq data set from sanssouci.data
+#'
+#' @param RNAseq_blca matrix
+#'
+#' @return matrix
+#' @export
+#' @import org.Hs.eg.db
+RNAseq_blca_GO <- function(RNAseq_blca){
+  # BiocManager::install("org.Hs.eg.db")
+  library("org.Hs.eg.db")
+
+  # data set-specific code to perform ad hoc gene selection
+  # (to avoid having too many GO terms)
+  dat <- RNAseq_blca
+  categ <- ifelse(colnames(dat) == "III", 1, 0) # map to 0/1
+  dex <- data.frame(rowWilcoxonTests(dat, categ))
+  probeNames <- rownames(dex)
+  nbProbes <- length(probeNames)
+
+  pval <- dex[["p.value"]]
+  adjp <- p.adjust(pval, method = "BH")
+  #selected <- probeNames[which(adjp < 0.05)]
+  selected <- probeNames[which(pval < 0.0001)]
+  length(selected)
+  # end data set-specific code
+
+  keytypes(org.Hs.eg.db)
+
+  cols <- c("SYMBOL", "GENENAME")
+  sel <- select(org.Hs.eg.db, keys=selected, columns=cols, keytype="SYMBOL")
+  head(sel)
+  dim(sel)
+
+  sel <- select(org.Hs.eg.db, keys=selected, columns="GO", keytype="SYMBOL")
+  head(sel)
+  dim(sel)
+  sel <- subset(sel, EVIDENCE == "TAS")
+  dim(sel)
+
+  GOs <- unique(sel$GO)
+  rev_sel <- select(org.Hs.eg.db, keys=GOs, columns=cols, keytype="GO")
+  head(rev_sel)
+  rev_sel <- subset(rev_sel, EVIDENCE == "TAS")
+
+  head(rev_sel)
+  dim(rev_sel)
+  table(rev_sel$ONTOLOGY)
+
+  # map to matrix with genes x go_terms
+  gnames <- rownames(dat)
+  tap <- tapply(rev_sel$SYMBOL, INDEX = rev_sel$GO, FUN = function(x){
+    y <- numeric(length(gnames))
+    y[match(x, gnames)] <- 1
+    y
+  })
+  go <- Reduce(cbind, tap)
+  rownames(go) <- gnames
+  colnames(go) <- names(tap)
+  dim(go)
+
+  expr_ALL_GO <- go[, colSums(go) >= 3]
+
+  return(expr_ALL_GO)
+}
+

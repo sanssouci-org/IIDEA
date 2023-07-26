@@ -229,11 +229,11 @@ shinyServer(function(input, output, session) {
 
               setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
 
-              bioFun <- readRDS("GSEABenchmarkeR/gene-set/go.gs.RDS")
-              # stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
-              # mm <- match(base::rownames(bioFun), base::rownames(matrix))
-              # stopifnot(!any(is.na(mm)))
-              object$input$biologicalFunc <- bioFun
+              bioFun <- RNAseq_blca_GO(matrix)
+              stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
+              mm <- match(base::rownames(bioFun), base::rownames(matrix))
+              stopifnot(!any(is.na(mm)))
+              object$input$biologicalFunc <- bioFun[mm, ]
               rm(bioFun)
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
@@ -1226,8 +1226,10 @@ shinyServer(function(input, output, session) {
     vecteur <- rep(0, dim(data()$input$Y)[1])
     vecteur[selectedGenes()$sel12] <- 1
 
+    print("avant 1229")
     rigthTable <- tableCSV() %>%
-      select(-Thresholds_selection)
+      dplyr::select(-Thresholds_selection)
+    print("apres 1232")
     df <- cbind(
 
       data.frame(

@@ -29,23 +29,23 @@ for (name in nameGSE){
 }
 
 
-# go.gs <- R.cache::memoizedCall(EnrichmentBrowser::getGenesets,
-#                                org = "hsa", db = "go", onto = "BP", mode = "GO.db")
-#
-# cleanGo.GS <- function(go.gs){
-#   for(i in names(go.gs)){
-#     if(length(go.gs[[i]])<10){
-#       go.gs[i] <- NULL
-#     }
-#   }
-#   return(go.gs)
-#
-# }
-#
-# go.gs <- R.cache::memoizedCall(cleanGo.GS, go.gs) # our func
-#
-# saveRDS(go.gs, file="gene-set/go.gs.RDS")
-#
-# print("go.gs done")
+go.gs <- R.cache::memoizedCall(EnrichmentBrowser::getGenesets,
+                               org = "hsa", db = "go", onto = "BP", mode = "GO.db")
+
+cleanGo.GS <- function(go.gs){
+  for(i in names(go.gs)){
+    if(length(go.gs[[i]])<10){
+      go.gs[i] <- NULL
+    }
+  }
+  return(go.gs)
+
+}
+
+go.gs <- R.cache::memoizedCall(cleanGo.GS, go.gs) # our func
+
+saveRDS(go.gs, file="gene-set/go.gs.RDS")
+
+print("go.gs done")
 
 setwd(orwd)

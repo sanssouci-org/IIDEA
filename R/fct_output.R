@@ -1,4 +1,5 @@
 utils::globalVariables(c("expr_ALL", "expr_ALL_GO"))
+utils::globalVariables(c("RNAseq_blca", "RNAseq_blca_GO"))
 
 #' Create example data set
 #'
@@ -49,7 +50,10 @@ exampleData <- function(type) {
     if (!exists("RNAseq_blca")) {
       data(RNAseq_blca, package = "sanssouci.data", envir = environment())
     }
-
+    if (!exists("RNAseq_blca_GO")) {
+      data(RNAseq_blca_GO, package = "sanssouci.data", envir = environment())
+    }
+    
     #### expression matrix
     data <- list()
     data$matrix <- RNAseq_blca
@@ -66,7 +70,7 @@ exampleData <- function(type) {
     rm(dex)
 
     # gene set matrix
-    bioFun <- RNAseq_blca_GO(RNAseq_blca)
+    bioFun <- RNAseq_blca_GO
     mm <- match(base::rownames(bioFun), base::rownames(data$matrix))
     data$biologicalFunc <- bioFun[mm, ]
     rm(bioFun)

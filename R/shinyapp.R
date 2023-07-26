@@ -13,6 +13,7 @@
 #' @import R.cache
 #' @import shinyBS
 #' @import shinyjs
+#' @importFrom matrixStats rowMaxs rowQuantiles
 #' @export
 #'
 shinyApp <- function() {

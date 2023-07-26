@@ -7,6 +7,7 @@
 #' @return
 #'
 #' @import shinyjs
+#' @importFrom matrixStats rowMaxs rowQuantiles
 #'
 shinyServer(function(input, output, session) {
 
@@ -212,8 +213,10 @@ shinyServer(function(input, output, session) {
 
               CPM <- matrix / colSums(matrix) * 1e6
               # plot(density(rowMaxs(log(1 + CPM))))
-              ww <- which(rowMaxs(CPM) < 10)
-              ww <- which(rowQuantiles(log(1 + CPM), prob = 0.75) < log(1 + 5))
+              row_maxs <- matrixStats::rowMaxs(CPM)
+              ww <- which(row_maxs < 10)
+              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM), prob = 0.75)
+              ww <- which(row_quantiles < log(1 + 5))
               matrix <- log(1 + CPM[-ww, ])
 
               ### cleaning categories

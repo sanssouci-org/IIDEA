@@ -16,6 +16,8 @@ library("R.cache")
 
 data(expr_ALL, package = "sanssouci.data", envir = environment())
 data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
+data(RNAseq_blca, package = "sanssouci.data", envir = environment())
+data(RNAseq_blca_GO, package = "sanssouci.data", envir = environment())
 
 
 shinyUI(fluidPage(
@@ -32,7 +34,9 @@ shinyUI(fluidPage(
       tags$table(
         style = "width: 100%",
         tags$tr(
+
           tags$td(
+
             align = "center",
             htmlOutput("help")
           ),
@@ -49,6 +53,15 @@ shinyUI(fluidPage(
           )
         )
       ),
+
+      selectInput("choiceTypeData",
+        label = "Choose the type of data",
+        choices = c(
+          "Microarrays" = "microarrays",
+          "bulk RNAseq" = "rnaseq"
+        )
+      ),
+
       conditionalPanel(
         condition = "input.checkboxDemo",
         uiOutput("choiceGSEAUI")
@@ -64,6 +77,7 @@ shinyUI(fluidPage(
               style = "info",
               size = "extra-small"
             ),
+
             actionButton(
               "resetInputData",
               icon("trash")
@@ -75,6 +89,7 @@ shinyUI(fluidPage(
           "Upload a CSV file containing matrix with genes
                                  in rows and samples in column.
                                  Column names should be in (in {0, 1})",
+
           "right",
           options = list(container = "body"),
           trigger = "hover"
@@ -82,6 +97,11 @@ shinyUI(fluidPage(
       ),
       conditionalPanel(
         condition = "!input.checkboxDemo",
+
+        # splitLayout(
+        #   fileInput("fileAnnotation", label = p("Input gene annotation",
+        #                                         bsButton("QfileAnnotation", label = "", icon = icon("question"), style = "info", size = "extra-small"))),
+
         fileInput("fileGroup",
           label = p(
             "Gene set matrix",
@@ -91,6 +111,7 @@ shinyUI(fluidPage(
               style = "info",
               size = "extra-small"
             ),
+
             actionButton(
               "resetInputGroup",
               icon("trash")
@@ -103,27 +124,42 @@ shinyUI(fluidPage(
           title = "Upload a csv file containing matrix
                                  within nameGenes in line index. Binary vector
                                  composed this matrix for each gene set.",
+
           placement = "bottom",
           trigger = "hover",
           options = NULL
         ),
+
         downloadButton(
           "downloadExampleData",
           "Download example data set"
         )
+
       ),
       sliderInput("sliderConfLevel",
         "Confidence level",
         min = 0,
         max = 100, value = 90, post = " %"
+
       ),
       checkboxInput("checkboxAdvancedParam",
         label = p("Advanced parameters"),
+        # bsButton("Qparam",
+        #          label = "",
+        #          icon = icon("question"),
+        #          style = "info",
+        #          size = "extra-small")),
         value = FALSE
       ),
+      # bsTooltip(id = "Qparam",
+      #           title = paste("Select parameters to implement permutation-based post hoc inference bounds for differential gene expression analysis, see dedicated ",
+      #                           a("vignette.",
+      #                             href = "https://sanssouci-org.github.io/sanssouci/articles/post-hoc_differential-expression.html")),
+      #           trigger = c("click", "hover"),
+      #           options = NULL),
       conditionalPanel(
         condition = "input.checkboxAdvancedParam",
-        hidden(uiOutput("msgDegraded")),
+        shinyjs::hidden(uiOutput("msgDegraded")),
         splitLayout(
           selectInput("alternative",
             label = "Alternative",
@@ -134,23 +170,19 @@ shinyUI(fluidPage(
             ),
             selected = "two.sided"
           ),
-          numericInput("numB",
-            label = "Number of permutations",
-            value = 500, min = 10
-          )
+          numericInput("numB", label = "Number of permutations", value = 500, min = 10)
         ),
         splitLayout(
           selectInput("refFamily",
             label = "Reference family",
-            choices = list(
-              "Simes" = "Simes",
-              "Beta" = "Beta"
-            ),
+            choices = list("Simes" = "Simes", "Beta" = "Beta"),
             selected = "Simes"
           ),
           uiOutput("inputK") # )
-        )
+        ),
+        uiOutput("teststatUI")
       ),
+
       verbatimTextOutput("sorti"),
       conditionalPanel(
         condition = "input.buttonValidate != 0",
@@ -165,12 +197,14 @@ shinyUI(fluidPage(
                 width = 12
               )
             ),
+
             hidden(
               downloadButton(
                 "downloadPHBTable",
                 "Download post hoc bound table"
               )
             )
+
           ),
           tabPanel("Gene sets",
             value = 2,
@@ -185,10 +219,12 @@ shinyUI(fluidPage(
             ),
             uiOutput("errorMatch"),
             DTOutput("tableBoundsGroup"),
+
             downloadButton(
               "downloadPHBTableGroup",
               "Download post hoc bound table"
             )
+
           )
         )
       ),
@@ -196,20 +232,24 @@ shinyUI(fluidPage(
 
     # Main panel
     mainPanel(
+
       uiOutput("errorInput"),
       conditionalPanel(
         condition = "input.buttonValidate != 0",
         h2("Volcano plot",
+
           bsButton("Qparam1",
             label = "",
             icon = icon("question"), style = "info",
             size = "extra-small"
           ),
+
           align = "center"
         ),
         bsPopover(
           id = "Qparam1",
           title = "VolcanoPlot",
+
           content = paste('Select genes by dragging
                                                   horizontal or vertical bars,
                                                   of using "box select" or
@@ -217,6 +257,7 @@ shinyUI(fluidPage(
                                                   menu. The table in the left
                                                   panel gives post-hoc bounds
                                                   for these selections.'),
+
           placement = "bottom",
           trigger = "hover",
           options = NULL
@@ -237,6 +278,7 @@ shinyUI(fluidPage(
           ),
           uiOutput("msgURLds")
         )
+
       ),
       conditionalPanel(
         condition = "input.tabSelected==1",
@@ -260,6 +302,7 @@ shinyUI(fluidPage(
         plotly::plotlyOutput("volcanoplotPriori",
           height = "600px"
         )
+
       )
     )
   ),
@@ -267,6 +310,7 @@ shinyUI(fluidPage(
     "This interactive ",
     a("shiny", href = "https://shiny.rstudio.com", target = "_blank"),
     "application is developed by",
+
     a("Nicolas Enjalbert-Courrech",
       href = "https://nicolas-enjalbert.github.io/",
       target = "_blank"
@@ -297,5 +341,6 @@ shinyUI(fluidPage(
       href = "https://github.com/sanssouci-org/sanssouci/issues",
       target = "_blank"
     )
+
   ))
 ))

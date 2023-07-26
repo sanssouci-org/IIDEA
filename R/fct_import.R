@@ -83,7 +83,7 @@ cleanMatrix <- function(matrixFunc) {
       colnam[colnam == valueColnam[2]] <- 1
       colnames(matrixFunc) <- colnam
       text <- paste(
-        "The colnames of your matrix does not contains 0 or 1.
+        "The colnames of your matrix do not contain 0 or 1.
                     We consider that", valueColnam[1],
         "becomes 0 and ", valueColnam[2], " becomes 1"
       )
@@ -180,3 +180,5 @@ matchMatrixBiofun <- function(geneNames, biofun) {
     color = color
   ))
 }
+
+

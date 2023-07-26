@@ -133,8 +133,8 @@ boundGroup2 <- function(object) {
   table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(),
                       "FDP&le;" = c(), check.names = FALSE)
   bioFun <- object$input$biologicalFunc
+  print(paste("boundGroup2 class is ", class(bioFun)))
   if (class(bioFun)[1] == "list") {
-    print("on passe ici")
     nameFunctions <- names(bioFun)
     for (func in nameFunctions) {
       incProgress(1 / length(nameFunctions))
@@ -154,7 +154,7 @@ boundGroup2 <- function(object) {
   } else {
     nameFunctions <- colnames(bioFun)
     for (func in nameFunctions) {
-      incProgress(1 / length(nameFunctions))
+      # incProgress(1 / length(nameFunctions))
       ids <- which(bioFun[, func] == 1)
       if (length(ids) > 1) {
         bounds <- predict2(object, S = ids)
@@ -169,5 +169,7 @@ boundGroup2 <- function(object) {
     }
   }
   table <- table[order(table["FDP&le;"]), ]
+  print("end boundGroup2")
+  print("###################")
   return(table)
 }

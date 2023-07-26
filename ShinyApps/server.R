@@ -213,8 +213,6 @@ shinyServer(function(input, output, session) {
 
               CPM <- matrix / colSums(matrix) * 1e6
               # plot(density(rowMaxs(log(1 + CPM))))
-              row_maxs <- matrixStats::rowMaxs(CPM)
-              ww <- which(row_maxs < 10)
               row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM), prob = 0.75)
               ww <- which(row_quantiles < log(1 + 5))
               matrix <- log(1 + CPM[-ww, ])
@@ -229,11 +227,18 @@ shinyServer(function(input, output, session) {
 
               setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
 
-              bioFun <- RNAseq_blca_GO(matrix)
-              stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
-              mm <- match(base::rownames(bioFun), base::rownames(matrix))
+              bioFun <- RNAseq_blca_GO # read data from sanssouci.data
+              ## sanity check: all genes are annotated
+              mm <- match(base::rownames(matrix), base::rownames(bioFun))
               stopifnot(!any(is.na(mm)))
-              object$input$biologicalFunc <- bioFun[mm, ]
+              bioFun <- bioFun[mm, ]
+              stopifnot(identical(base::rownames(matrix), base::rownames(bioFun)))
+              
+              # make sure at least 3 genes for each GO *after filtering*
+              bioFun <- bioFun[, colSums(bioFun) >= 3]
+              str(bioFun)
+              
+              object$input$biologicalFunc <- bioFun
               rm(bioFun)
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE

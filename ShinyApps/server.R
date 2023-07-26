@@ -40,22 +40,40 @@ shinyServer(function(input, output, session) {
 
   namesExampleFile <- reactive({
 
-    filenames <- (list.files("GSEABenchmarkeR/express-data-set",
-      pattern = "*.RDS", full.names = TRUE
-    ))
+    if(req(input$choiceTypeData) == "microarrays"){
 
-    if (length(filenames) == 0) {
-      return(NULL)
+      filenames <- (list.files("GSEABenchmarkeR/express-data-set",
+                               pattern = "*.RDS", full.names = TRUE
+      ))
+
+      if (length(filenames) == 0) {
+        return(NULL)
+      }
+      ldf <- lapply(filenames[2:length(filenames)], readRDS)
+      lID <- sapply(ldf, function(l) {
+        l@metadata$dataId
+      })
+      names(lID) <- paste(sapply(ldf, function(l) {
+        l@metadata$experimentData@other$disease
+      }), " (", (lID), ")", sep = "")
+      return(lID)}
+    else if (req(input$choiceTypeData) == "rnaseq"){
+      filenames <- (list.files("GSEABenchmarkeR/express-RNAseq-data-set",
+                               pattern = "*.RDS", full.names = TRUE
+      ))
+
+      if (length(filenames) == 0) {
+        return(NULL)
+      }
+
+      pattern <- "GSEABenchmarkeR/express-RNAseq-data-set/(.*).RDS"
+      lID <- sapply(filenames[-1], function(filename) {gsub(pattern, "\\1", filename)})
+      names(lID) = lID
+      return(lID)
+
     }
-    ldf <- lapply(filenames[2:length(filenames)], readRDS)
-    lID <- sapply(ldf, function(l) {
-      l@metadata$dataId
-    })
-    names(lID) <- paste(sapply(ldf, function(l) {
-      l@metadata$experimentData@other$disease
-    }), " (", (lID), ")", sep = "")
-    return(lID)
   }) # get names of data sets
+
 
   output$choiceGSEAUI <- renderUI({ # create input
 
@@ -71,7 +89,9 @@ shinyServer(function(input, output, session) {
     } else if (req(input$choiceTypeData) == "rnaseq") {
       selectInput("choiceGSEA",
         label = "Choose a gene data set",
-        choices = c("Urothelial Bladder Carcinoma: stage II vs stage III" = "BLCA")
+        choices = c("Urothelial Bladder Carcinoma: stage II vs stage III" = "BLCA",
+                    namesExampleFile()
+                    )
       )
     }
 
@@ -185,7 +205,6 @@ shinyServer(function(input, output, session) {
               object$bool$degrade <- FALSE
             }
           } else if (req(input$choiceTypeData) == "rnaseq") {
-            # print(input$choiceGSEA)
             if (req(input$choiceGSEA) == "BLCA" | req(input$choiceGSEA) == "OurData") {
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
@@ -207,17 +226,35 @@ shinyServer(function(input, output, session) {
 
               setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
 
-              # bioFun <- expr_ALL_GO
+              bioFun <- readRDS("GSEABenchmarkeR/gene-set/go.gs.RDS")
               # stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
               # mm <- match(base::rownames(bioFun), base::rownames(matrix))
               # stopifnot(!any(is.na(mm)))
-              # object$input$biologicalFunc <- bioFun[mm, ]
-              # # print(dim(object$input$biologicalFunc)[1])
-              # rm(bioFun)
+              object$input$biologicalFunc <- bioFun
+              rm(bioFun)
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
               rm(matrix)
               rm(categ)
+            } else {
+              setProgress(value = 0.4, detail = "GSEA data set ...")
+              rawData <- readRDS(paste("GSEABenchmarkeR/express-RNAseq-data-set/", input$choiceGSEA, ".RDS", sep = ""))
+              # rawData <- R.cache::memoizedCall(maPreproc,geo2kegg()[input$choiceGSEA])[[1]]
+
+              matrix <- rawData
+
+              categ <- colnames(rawData)
+              object <- SansSouci(Y = matrix, groups = as.numeric(categ))
+              setProgress(value = 0.7, detail = "GSEA data set ...")
+
+              object$input$geneNames <- base::rownames(matrix)
+
+              object$input$biologicalFunc <- readRDS("GSEABenchmarkeR/gene-set/go.gs.RDS")
+              # object$bool$url <- rawData@metadata$experimentData@url
+
+              object$bool$validation <- TRUE
+              object$bool$degrade <- FALSE
+
             }
           }
         } else {
@@ -308,7 +345,6 @@ shinyServer(function(input, output, session) {
               check.names = FALSE
             )
             T2 <- Sys.time()
-            # print(paste("read gene set", T2 - T1))
 
             setProgress(value = 0.8, detail = "Cleaning of gene set data ...")
             cleanBio <- cleanBiofun(bioFun) # cleaning and message error
@@ -1265,8 +1301,6 @@ shinyServer(function(input, output, session) {
 
       table <- boundGroup2(req(data()))
       T2 <- Sys.time()
-      # print("post hoc bounds on gene set:")
-      # print(difftime(T2, T1))
     })
     return(table)
   })
@@ -1306,12 +1340,12 @@ shinyServer(function(input, output, session) {
     req(tableBoundsGroup())
     if (input$buttonSEA == "competitive") {
       table <- tableBoundsGroup()
-      sel <- which(table[["FDP≤"]] < boundsW()["FDP"])
+      sel <- which(table[["FDP&le;"]] < boundsW()["FDP"])
       newValue <- table[sel, ]
       return(newValue)
     } else if (input$buttonSEA == "self") {
       table <- tableBoundsGroup()
-      sel <- which(table[["TP≥"]] > 0)
+      sel <- which(table[["TP&ge;"]] > 0)
       return(table[sel, ])
     } else {
       return(tableBoundsGroup())

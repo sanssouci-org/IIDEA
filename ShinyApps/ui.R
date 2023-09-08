@@ -97,6 +97,35 @@ shinyUI(fluidPage(
       ),
       conditionalPanel(
         condition = "!input.checkboxDemo",
+        fileInput("fileLightData",
+                  label = p(
+                    "External p-values and log Fold Change matrix",
+                    bsButton("QfileLightData",
+                             label = "",
+                             icon = icon("question"),
+                             style = "info",
+                             size = "extra-small"
+                    ),
+
+                    actionButton(
+                      "resetInputLightData",
+                      icon("trash")
+                    )
+                  ),
+                  accept = ".csv"
+        ),
+        bsTooltip("QfileLightData",
+                  "Upload a CSV file containing matrix with genes
+                                 in rows and pvalues / Fold Change in columns.
+                                 Column names should be 'fc', 'p.value'",
+
+                  "right",
+                  options = list(container = "body"),
+                  trigger = "hover"
+        )
+      ),
+      conditionalPanel(
+        condition = "!input.checkboxDemo",
 
         # splitLayout(
         #   fileInput("fileAnnotation", label = p("Input gene annotation",

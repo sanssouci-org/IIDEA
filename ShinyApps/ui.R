@@ -43,8 +43,8 @@ shinyUI(fluidPage(
           tags$td(
             align = "center",
             checkboxInput("checkboxDemo",
-              label = "Use public data",
-              value = TRUE
+                          label = "Use public data",
+                          value = FALSE
             )
           ),
           tags$td(
@@ -55,11 +55,11 @@ shinyUI(fluidPage(
       ),
 
       selectInput("choiceTypeData",
-        label = "Choose the type of data",
-        choices = c(
-          "Microarrays" = "microarrays",
-          "bulk RNAseq" = "rnaseq"
-        )
+                  label = "Choose the type of data",
+                  choices = c(
+                    "Microarrays" = "microarrays",
+                    "bulk RNAseq" = "rnaseq"
+                  )
       ),
 
       conditionalPanel(
@@ -69,30 +69,30 @@ shinyUI(fluidPage(
       conditionalPanel(
         condition = "!input.checkboxDemo",
         fileInput("fileData",
-          label = p(
-            "Gene expression data matrix",
-            bsButton("QfileData",
-              label = "",
-              icon = icon("question"),
-              style = "info",
-              size = "extra-small"
-            ),
+                  label = p(
+                    "Gene expression data matrix",
+                    bsButton("QfileData",
+                             label = "",
+                             icon = icon("question"),
+                             style = "info",
+                             size = "extra-small"
+                    ),
 
-            actionButton(
-              "resetInputData",
-              icon("trash")
-            )
-          ),
-          accept = ".csv"
+                    actionButton(
+                      "resetInputData",
+                      icon("trash")
+                    )
+                  ),
+                  accept = ".csv"
         ),
         bsTooltip("QfileData",
-          "Upload a CSV file containing matrix with genes
+                  "Upload a CSV file containing matrix with genes
                                  in rows and samples in column.
                                  Column names should be in (in {0, 1})",
 
-          "right",
-          options = list(container = "body"),
-          trigger = "hover"
+                  "right",
+                  options = list(container = "body"),
+                  trigger = "hover"
         )
       ),
       conditionalPanel(
@@ -132,21 +132,21 @@ shinyUI(fluidPage(
         #                                         bsButton("QfileAnnotation", label = "", icon = icon("question"), style = "info", size = "extra-small"))),
 
         fileInput("fileGroup",
-          label = p(
-            "Gene set matrix",
-            bsButton("QfileGroup",
-              label = "",
-              icon = icon("question"),
-              style = "info",
-              size = "extra-small"
-            ),
+                  label = p(
+                    "Gene set matrix",
+                    bsButton("QfileGroup",
+                             label = "",
+                             icon = icon("question"),
+                             style = "info",
+                             size = "extra-small"
+                    ),
 
-            actionButton(
-              "resetInputGroup",
-              icon("trash")
-            )
-          ),
-          accept = ".csv"
+                    actionButton(
+                      "resetInputGroup",
+                      icon("trash")
+                    )
+                  ),
+                  accept = ".csv"
         ),
         bsTooltip(
           id = "QfileGroup",
@@ -166,19 +166,19 @@ shinyUI(fluidPage(
 
       ),
       sliderInput("sliderConfLevel",
-        "Confidence level",
-        min = 0,
-        max = 100, value = 90, post = " %"
+                  "Confidence level",
+                  min = 0,
+                  max = 100, value = 90, post = " %"
 
       ),
       checkboxInput("checkboxAdvancedParam",
-        label = p("Advanced parameters"),
-        # bsButton("Qparam",
-        #          label = "",
-        #          icon = icon("question"),
-        #          style = "info",
-        #          size = "extra-small")),
-        value = FALSE
+                    label = p("Advanced parameters"),
+                    # bsButton("Qparam",
+                    #          label = "",
+                    #          icon = icon("question"),
+                    #          style = "info",
+                    #          size = "extra-small")),
+                    value = FALSE
       ),
       # bsTooltip(id = "Qparam",
       #           title = paste("Select parameters to implement permutation-based post hoc inference bounds for differential gene expression analysis, see dedicated ",
@@ -191,23 +191,26 @@ shinyUI(fluidPage(
         shinyjs::hidden(uiOutput("msgDegraded")),
         splitLayout(
           selectInput("alternative",
-            label = "Alternative",
-            choices = list(
-              "Two sided" = "two.sided",
-              "Less" = "less",
-              "Greater" = "greater"
-            ),
-            selected = "two.sided"
+                      label = "Alternative",
+                      choices = list(
+                        "Two sided" = "two.sided",
+                        "Less" = "less",
+                        "Greater" = "greater"
+                      ),
+                      selected = "two.sided"
           ),
           numericInput("numB", label = "Number of permutations", value = 500, min = 10)
         ),
-        splitLayout(
-          selectInput("refFamily",
-            label = "Reference family",
-            choices = list("Simes" = "Simes", "Beta" = "Beta"),
-            selected = "Simes"
-          ),
-          uiOutput("inputK") # )
+        # conditionalPanel(
+        #   condition = "input.fileData",
+          splitLayout(
+            selectInput("refFamily",
+                        label = "Reference family",
+                        choices = list("Simes" = "Simes", "Beta" = "Beta"),
+                        selected = "Simes"
+            ),
+            uiOutput("inputK") # )
+          # )
         ),
         uiOutput("teststatUI")
       ),
@@ -218,41 +221,41 @@ shinyUI(fluidPage(
         tabsetPanel(
           id = "tabSelected",
           tabPanel("User selections",
-            value = 1,
-            uiOutput("OutQtableBounds"),
-            fluidRow(
-              column(
-                DTOutput("tableBounds"),
-                width = 12
-              )
-            ),
+                   value = 1,
+                   uiOutput("OutQtableBounds"),
+                   fluidRow(
+                     column(
+                       DTOutput("tableBounds"),
+                       width = 12
+                     )
+                   ),
 
-            hidden(
-              downloadButton(
-                "downloadPHBTable",
-                "Download post hoc bound table"
-              )
-            )
+                   hidden(
+                     downloadButton(
+                       "downloadPHBTable",
+                       "Download post hoc bound table"
+                     )
+                   )
 
           ),
           tabPanel("Gene sets",
-            value = 2,
-            uiOutput("OutQtableBoundsGroup"),
-            selectInput("buttonSEA",
-              label = "Simultaneous Enrichment Analysis",
-              choices = list(
-                "All gene sets" = "nothing",
-                "Significant for self-contained method" = "self",
-                "Significant for competitive method" = "competitive"
-              )
-            ),
-            uiOutput("errorMatch"),
-            DTOutput("tableBoundsGroup"),
+                   value = 2,
+                   uiOutput("OutQtableBoundsGroup"),
+                   selectInput("buttonSEA",
+                               label = "Simultaneous Enrichment Analysis",
+                               choices = list(
+                                 "All gene sets" = "nothing",
+                                 "Significant for self-contained method" = "self",
+                                 "Significant for competitive method" = "competitive"
+                               )
+                   ),
+                   uiOutput("errorMatch"),
+                   DTOutput("tableBoundsGroup"),
 
-            downloadButton(
-              "downloadPHBTableGroup",
-              "Download post hoc bound table"
-            )
+                   downloadButton(
+                     "downloadPHBTableGroup",
+                     "Download post hoc bound table"
+                   )
 
           )
         )
@@ -267,13 +270,13 @@ shinyUI(fluidPage(
         condition = "input.buttonValidate != 0",
         h2("Volcano plot",
 
-          bsButton("Qparam1",
-            label = "",
-            icon = icon("question"), style = "info",
-            size = "extra-small"
-          ),
+           bsButton("Qparam1",
+                    label = "",
+                    icon = icon("question"), style = "info",
+                    size = "extra-small"
+           ),
 
-          align = "center"
+           align = "center"
         ),
         bsPopover(
           id = "Qparam1",
@@ -293,17 +296,17 @@ shinyUI(fluidPage(
         ),
         flowLayout(
           selectInput("choiceYaxis",
-            label = "'y' axis label",
-            choices = list(
-              "p-values" = "pval",
-              "Adjusted p-values" = "adjPval",
-              "Number of false positves" = "thr"
-            ),
-            selected = "thr"
+                      label = "'y' axis label",
+                      choices = list(
+                        "p-values" = "pval",
+                        "Adjusted p-values" = "adjPval",
+                        "Number of false positves" = "thr"
+                      ),
+                      selected = "thr"
           ),
           checkboxInput("symetric",
-            label = "Symmetric fold change threshold",
-            value = FALSE
+                        label = "Symmetric fold change threshold",
+                        value = FALSE
           ),
           uiOutput("msgURLds")
         )
@@ -312,7 +315,7 @@ shinyUI(fluidPage(
       conditionalPanel(
         condition = "input.tabSelected==1",
         plotly::plotlyOutput("volcanoplotPosteriori",
-          height = "600px"
+                             height = "600px"
         ),
         fluidRow(
           shinyjs::hidden(actionButton(
@@ -329,7 +332,7 @@ shinyUI(fluidPage(
         condition = "input.tabSelected==2",
         uiOutput("errorBioMatrix"),
         plotly::plotlyOutput("volcanoplotPriori",
-          height = "600px"
+                             height = "600px"
         )
 
       )

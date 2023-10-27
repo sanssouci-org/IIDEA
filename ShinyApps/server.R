@@ -177,17 +177,19 @@ shinyServer(function(input, output, session) {
           if (req(input$choiceTypeData) == "microarrays") {
             if (req(input$choiceGSEA) == "OurData" | req(input$choiceGSEA) == "BLCA") {
               # cleaning for data from sanssouci.data
+              print("Etape 1")
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- expr_ALL # read data from sanssouci.data
-
+              print("Etape 2")
               ### cleaning categories
               cat <- colnames(matrix)
               categ <- rep(1, length(cat))
               categ[which(cat == "NEG")] <- 0
+              print("Etape 3")
 
               object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) # create SansSouci object
               object$input$geneNames <- rownames(matrix)
-
+              print("Etape 4")
               setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
 
               bioFun <- expr_ALL_GO
@@ -196,6 +198,7 @@ shinyServer(function(input, output, session) {
               stopifnot(!any(is.na(mm)))
               object$input$biologicalFunc <- bioFun[mm, ]
               rm(bioFun)
+              print("Etape 5")
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
               rm(matrix)
@@ -300,16 +303,16 @@ shinyServer(function(input, output, session) {
 
           is.expressionMatrix <- !is.null((fileData()))
           is.VPMatrix <- !is.null((fileLightData()))
-
+          print("Etape 5")
           setProgress(value = 0.1, detail = "Read csv ...")
 
           if(is.expressionMatrix){
             matrix <- readCSV_sep(file = fileData()$datapath, row.names = 1, check.names = FALSE)
-
+            print("Etape 6")
             setProgress(value = 0.4, detail = "Clean data set ...")
             clean <- cleanMatrix(matrix) # see cleanMatrix function :
             ### give specific issue for non available matrix
-
+            print("Etape 7")
             ### if matrix is not available, matrix == NULL allows to block the calibration JER and the printing
             if (clean$boolValidation) { # if matrix is ok
               object <- SansSouci(Y = as.matrix(clean$data), groups = as.numeric(colnames(clean$data)))
@@ -430,6 +433,7 @@ shinyServer(function(input, output, session) {
           rm(matrix)
         }
         setProgress(value = 1, detail = "Done")
+        print("Etape exit object_I()")
         return(object)
       })
     })
@@ -437,6 +441,7 @@ shinyServer(function(input, output, session) {
   data <- reactiveVal()
   observe({
     data(req(object_I()))
+    print("update data")
   })
 
 
@@ -571,23 +576,27 @@ shinyServer(function(input, output, session) {
   ## dynamic input (need matrixChosen())
   output$inputK <- renderUI({
     req(object_I())
+    print("entrée output$inputtK")
     numericInput("valueK",
       label = "K (size of reference family)",
       value = numKI(),
       min = 1,
       max = nrow(req(object_I()$input$Y))
     )
+    print("sortie output$inputtK")
   })
 
   ## numKI() is used to intiate the printed input valueK
   numKI <- reactiveVal()
   observe({ # Initialization, if refFamily == 'Beta' or not
     req(object_I())
+    print("entrée numKI")
     newValue <- ifelse(input$refFamily == "Beta",
       round(2 * req(nrow(object_I()$input$Y)) / 100),
       req(nrow(object_I()$input$Y))
     )
     numKI(newValue)
+    print("sorti numKI")
   })
 
   ## numK is the parameters choosen by users and use in server side
@@ -597,10 +606,11 @@ shinyServer(function(input, output, session) {
   # and therefore we don't have the right result...
   # why ? CalibrateJER should handle if K is null, right?
   observeEvent(object_I(), {
-
+    print("entrée numK")
     req(object_I()) # when object_I() is change, INITIALISATION of numK()
     newValue <- req(nrow(object_I()$input$Y))
     numK(newValue)
+    print("sortie numK")
   })
   # When Run is clicked : we get the input value.
   # Here an issue : if, advanced parameters is not opened, input$valueK == NULL
@@ -679,7 +689,7 @@ shinyServer(function(input, output, session) {
 
         t2 <- Sys.time()
 
-        if (!is.VPMatrix){
+        if (!is.VPMatrix | input$checkboxDemo){
           pvaluesVP((pValues(object)))
           logFCVP(foldChanges(object))
         }
@@ -708,9 +718,11 @@ shinyServer(function(input, output, session) {
   pvaluesAdjVP <- reactiveVal(NULL)
   observe({
     req(pvaluesVP())
+    print("entrée pvaluesupdate")
     logpvaluesVP(-log10(pvaluesVP()))
     newValue <- p.adjust(pvaluesVP(), method = "BH")
     pvaluesAdjVP(newValue)
+    print("sortie pvaluesupdate")
   })
 
 
@@ -774,9 +786,11 @@ shinyServer(function(input, output, session) {
   observeEvent(pvaluesVP(), {
     # initialization : adjusted p-value == 0.1
     req(data())
+    print("entrée yint()")
     min0.1 <- which.min(abs(pvaluesAdjVP() - 0.1))
     y0.1 <- logpvaluesVP()[[min0.1]]
     yint(y0.1)
+    print("sortie yint()")
   })
   observeEvent(vertical()[["shapes[1].y0"]], {
     # when user change threshold on plotly
@@ -801,14 +815,16 @@ shinyServer(function(input, output, session) {
     req(logFCVP(),logpvaluesVP())
     # data.frame(x = req(logFCVP()), y = req(pvaluesVP()))
     ## gene selections
-
+    print("entrée selectedGenes")
     sel1 <- which(logpvaluesVP() >= yint() &
                     logFCVP() >= xint()) # upper right
     sel2 <- which(logpvaluesVP() >= yint() &
                     logFCVP() <= xint2()) # upper left
 
     sel12 <- sort(union(sel1, sel2)) # both
+    print("sortie selectedGenes")
     return(list(sel1 = sel1, sel2 = sel2, sel12 = sel12))
+
   })
 
 
@@ -816,6 +832,7 @@ shinyServer(function(input, output, session) {
   # matrix p-val & fc of selected genes by thresholds
   # => to plot red points on volcano plot
   selected_points <- reactive({
+    print("selected_points")
     print(length(selectedGenes()$sel12))
     list(
       x = logFCVP()[selectedGenes()$sel12],
@@ -848,12 +865,15 @@ shinyServer(function(input, output, session) {
     req(selectedGenes())
 
     ## post hoc bounds in selections
+    req(data())
     req(thresholds(data()))
+    print("entrée TP_FDP")
     n12 <- length(selectedGenes()$sel12)
     pred <- predict(
       object = data(), S = selectedGenes()$sel12,
       what = c("TP", "FDP")
     )
+    print("sortie TP_FDP")
     return(list(
       n12 = n12, TP12 = pred["TP"], FDP12 = pred["FDP"]
     ))
@@ -863,7 +883,7 @@ shinyServer(function(input, output, session) {
   calcBoundSelection <- reactive({ #
     req(manuelSelected())
     req(thresholds(data()))
-
+print("calcBoundSelection")
     c(n = length(manuelSelected()), predict(data(),
       S = manuelSelected(),
       what = c("TP", "FDP")
@@ -886,6 +906,7 @@ shinyServer(function(input, output, session) {
   ## reactive : TP_FDP() <- selectedGenes() <- {xint(), xint2(), yint()} <-
   # vertical() <- user threshold moving
   baseTable <- reactive({
+    req(TP_FDP())
     data.frame(
       `Selection` = c("Threshold selection"),
       "# genes" = c(TP_FDP()$n12),
@@ -898,7 +919,7 @@ shinyServer(function(input, output, session) {
   # updating PHB table when thresholds change
   observeEvent(TP_FDP(), { # When threshold change
 
-
+    print("entrée tableresults")
     bottomTable <- tableResult() %>% # keep box/lasso selection
 
       filter(Selection != "Threshold selection")
@@ -908,12 +929,14 @@ shinyServer(function(input, output, session) {
 
     newValue <- rbind(upperTable, bottomTable)
     tableResult(newValue)
+    print("sortie tableresults")
   })
 
   # Add PHB for lasso and box selection
   ## d() is the reactive variable for box and lasso selection
   observeEvent(d(), { # When user selects a new group of points
     req(calcBoundSelection())
+    print("entrée d()")
 
     vectorGene <- names(pValues(data())[manuelSelected()])
     # list of gene contained in gene selection
@@ -929,6 +952,7 @@ shinyServer(function(input, output, session) {
       round(calcBoundSelection()["FDP"], 2)
     ))
     tableResult(newValue)
+    print("sortie d()")
   })
 
   # To clean gene selection from lasso/box selection
@@ -1000,7 +1024,7 @@ shinyServer(function(input, output, session) {
   lineAdjp <- reactive({
     req(pvaluesAdjVP())
     listLog <- c()
-
+    print("entrée linAdjp")
     for (i in c(0.5, 0.25, 0.1, 0.05, 0.025, 0.01, 0.001, 0.0001)) {
       # selected line on yaxis /!\ if you change it you have to change
       # in yaxis()
@@ -1011,6 +1035,7 @@ shinyServer(function(input, output, session) {
 
       listLog <- c(listLog, y05)
     }
+    print("sortie linAdjp")
     return(listLog)
   })
 
@@ -1020,12 +1045,18 @@ shinyServer(function(input, output, session) {
     req(data())
     req(thresholds(data()))
     req(logpvaluesVP())
+    print("thr_axis")
+    print(length(thresholds(data())))
+    print(max(logpvaluesVP()))
     thrYaxis(thr = thresholds(data()), maxlogp = max(logpvaluesVP()))
   })
 
   # reactive variable containing values for yaxis depending users choice
 
   yaxis <- reactive({
+    req(data())
+    print("entree yaxis")
+    print(input$choiceYaxis)
     f <- list(
       size = 14,
       color = "#000000"
@@ -1051,10 +1082,11 @@ shinyServer(function(input, output, session) {
         titlefont = f,
         autotick = FALSE,
         tickmode = "array",
-        tickvals = thr_yaxis()$pvalue,
-        ticktext = thr_yaxis()$num
+        tickvals = req(thr_yaxis()$pvalue),
+        ticktext = req(thr_yaxis()$num)
       )
     )
+    print("end yaxis")
     return(yaxis)
   })
 
@@ -1098,6 +1130,7 @@ shinyServer(function(input, output, session) {
   # Intialisation of volcano plot for threshold selection (part 1)
   posteriori <- reactive({
     req(data()$bool$validation)
+    req(data())
 
     req(logFCVP(), logpvaluesVP())
     setProgress(value = 0.9, detail = "posteriori Reactive ... ")
@@ -1107,7 +1140,13 @@ shinyServer(function(input, output, session) {
     )
     lte <- "≤"
     gte <- "≥"
-    plot_ly(data.frame(x = req(logFCVP()), y = req(logpvaluesVP())),
+    print("plotly entree")
+    # print(req(selected_points()$x[1:10]))
+    # print(req(selected_points()$y[1:10]))
+    # print(head(data.frame(x = req(logFCVP()), y = req(logpvaluesVP()))))
+    print(yaxis())
+    print(thrLine())
+    p <- plot_ly(data.frame(x = req(logFCVP()), y = req(logpvaluesVP())),
       x = ~x, y = ~y,
       marker = list(
         size = 2,
@@ -1119,7 +1158,7 @@ shinyServer(function(input, output, session) {
 
     ) %>%
       add_markers(
-        x = selected_points()$x, y = selected_points()$y,
+        x = req(selected_points()$x), y = req(selected_points()$y),
         # add at the begening selected points in red
 
         marker = list(
@@ -1146,6 +1185,8 @@ shinyServer(function(input, output, session) {
 
       config(editable = TRUE) %>%
       toWebGL() # to go faster on web
+    print("sortie plotly")
+    return(p)
   })
 
 

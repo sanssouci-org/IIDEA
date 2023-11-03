@@ -44,7 +44,7 @@ shinyUI(fluidPage(
             align = "center",
             checkboxInput("checkboxDemo",
                           label = "Use public data",
-                          value = FALSE
+                          value = TRUE
             )
           ),
           tags$td(

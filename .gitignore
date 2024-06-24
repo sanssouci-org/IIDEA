@@ -39,6 +39,7 @@ vignettes/*.pdf
 .Renviron
 .Rproj.user
 
-/ShinyApps/GSEABenchmarkeR/express-data-set
-/ShinyApps/GSEABenchmarkeR/gene-set
-/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set
+/inst/ShinyApps/GSEABenchmarkeR/express-data-set
+/inst/ShinyApps/GSEABenchmarkeR/gene-set
+/inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set
+/data

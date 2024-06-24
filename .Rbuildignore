@@ -4,3 +4,5 @@
 ^requirements\.txt$
 ^ShinyApps$
 ^\.github$
+^inst/ShinyApps/GSEABenchmarkeR/.*\.RDS$
+^data$

@@ -16,6 +16,6 @@
 #' @importFrom matrixStats rowMaxs rowQuantiles
 #' @export
 #'
-shinyApp <- function() {
-  shinyAppDir("ShinyApps/")
+run_IIDEA <- function() {
+  shinyAppDir("inst/ShinyApps/")
 }

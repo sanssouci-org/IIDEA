@@ -17,8 +17,7 @@ utils::globalVariables(c("RNAseq_blca", "RNAseq_blca_GO"))
 #' @examples
 #' exampleData(type = "microarrays")
 exampleData <- function(type) {
-
-  if (type ==  "microarrays"){
+  if (type == "microarrays") {
     if (!exists("expr_ALL")) {
       data(expr_ALL, package = "sanssouci.data", envir = environment())
     }
@@ -53,7 +52,7 @@ exampleData <- function(type) {
     if (!exists("RNAseq_blca_GO")) {
       data(RNAseq_blca_GO, package = "sanssouci.data", envir = environment())
     }
-    
+
     #### expression matrix
     data <- list()
     data$matrix <- RNAseq_blca
@@ -90,7 +89,9 @@ exampleData <- function(type) {
 UrlStringdbGrah <- function(vector) {
   vector[2:length(vector)] <- paste0("%0d", vector[2:length(vector)])
   url <- paste("https://string-db.org/api/image/network?identifiers=",
-               paste(vector, collapse = ""), "&species=9606", sep = "")
+    paste(vector, collapse = ""), "&species=9606",
+    sep = ""
+  )
   return(url)
 }
 
@@ -105,9 +106,13 @@ UrlStringdbGrah <- function(vector) {
 addUrlLink <- function(name) {
   if (grepl("GO:\\d+", name)) {
     url <- paste("https://www.ebi.ac.uk/QuickGO/term/",
-                 str_extract_all(name, "GO:\\d+"), sep = "")
+      str_extract_all(name, "GO:\\d+"),
+      sep = ""
+    )
     url <- paste('<a target="_blanck" href="', url, '" >',
-                 name, "</a>", sep = "")
+      name, "</a>",
+      sep = ""
+    )
     return(url)
   } else {
     return(name)
@@ -138,8 +143,8 @@ thrYaxis <- function(thr, maxlogp) {
     } else {
       100
     }
-    if ((valeurTest - df1[i, "pvalue"] > 0.3 * maxlogp / 12.5)
-        && (df1[i, "num"] %% mod == 0)) {
+    if ((valeurTest - df1[i, "pvalue"] > 0.3 * maxlogp / 12.5) &&
+      (df1[i, "num"] %% mod == 0)) {
       df2 <- rbind(df2, (df1[i, ]))
       valeurTest <- df1[i, "pvalue"]
     }

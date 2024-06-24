@@ -38,8 +38,10 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
   if (max(S) > nHyp(object)) {
     stop("'S' is not a subset of hypotheses")
   }
-  bounds <- posthoc_bound2(p.values, S = S, thr = thr, lab = lab,
-                           what = what, all = all)
+  bounds <- posthoc_bound2(p.values,
+    S = S, thr = thr, lab = lab,
+    what = what, all = all
+  )
   if (!all) {
     bounds <- bounds[, "bound"]
     if (length(bounds) > 1) {
@@ -130,8 +132,10 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values),
 #' @export
 #' @importFrom shiny incProgress
 boundGroup2 <- function(object) {
-  table <- data.frame("Name" = c(), "# genes" = c(), "TP&ge;" = c(),
-                      "FDP&le;" = c(), check.names = FALSE)
+  table <- data.frame(
+    "Name" = c(), "# genes" = c(), "TP&ge;" = c(),
+    "FDP&le;" = c(), check.names = FALSE
+  )
   bioFun <- object$input$biologicalFunc
   print(paste("boundGroup2 class is ", class(bioFun)))
   if (class(bioFun)[1] == "list") {

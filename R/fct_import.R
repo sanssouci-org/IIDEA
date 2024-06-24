@@ -180,5 +180,3 @@ matchMatrixBiofun <- function(geneNames, biofun) {
     color = color
   ))
 }
-
-

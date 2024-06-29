@@ -147,7 +147,7 @@ app_server <- function(input, output, session) {
     # to delete input file (clicking bin incon)
 
     fileData(NULL) # delete serveur variable
-    data(NULL)
+    data_server(NULL)
     reset("fileData") # delete UI variable (in fileInput)
   })
 
@@ -162,7 +162,7 @@ app_server <- function(input, output, session) {
     # to delete input file (clicking bin incon)
 
     fileLightData(NULL) # delete serveur variable
-    data(NULL)
+    data_server(NULL)
     reset("fileLightData") # delete UI variable (in fileInput)
   })
 
@@ -174,7 +174,7 @@ app_server <- function(input, output, session) {
   })
   observeEvent(input$resetInputGroup, {
     fileGroup(NULL)
-    data(NULL)
+    data_server(NULL)
     reset("fileGroup")
   })
 
@@ -451,9 +451,9 @@ app_server <- function(input, output, session) {
       })
     })
 
-  data <- reactiveVal()
+  data_server <- reactiveVal()
   observe({
-    data(req(object_I()))
+    data_server(req(object_I()))
     # print("update data")
   })
 
@@ -677,7 +677,7 @@ app_server <- function(input, output, session) {
   ## JER calibration on available expression gene matrix
   # observe({
   observeEvent(input$buttonValidate, {
-    req(data()$bool$validation)
+    req(data_server()$bool$validation)
 
     is.expressionMatrix <- !is.null((fileData()))
     is.VPMatrix <- !is.null((fileLightData()))
@@ -691,7 +691,7 @@ app_server <- function(input, output, session) {
           rTF <- req(eval(parse(text = rowTestFUN()), envir = environment(rowWelchTests)))
         }
         t1 <- Sys.time()
-        object <- fit(data(),
+        object <- fit(data_server(),
                       alpha = req(alpha()),
                       B = numB(),
                       rowTestFUN = rTF,
@@ -712,11 +712,11 @@ app_server <- function(input, output, session) {
     } else { # light version
       # matrices with pval and fc are in the object since its creation
 
-      m <- nHyp(data())
+      m <- nHyp(data_server())
       thr <- t_linear(alpha(), seq_len(m), m)
       # force using of Simes and k=m # IMPORT FROM FUNCTION.R
 
-      object <- data()
+      object <- data_server()
       object$output$thr <- thr
       object$output$lambda <- alpha()
       object$parameters$alpha <- alpha()
@@ -724,7 +724,7 @@ app_server <- function(input, output, session) {
     # calcul des logp et adjp
     object$output$logp <- -log10(pValues(object))
     object$output$adjp <- p.adjust(pValues(object), method = "BH")
-    data(object)
+    data_server(object)
   })
 
   logpvaluesVP <- reactiveVal(NULL)
@@ -798,7 +798,7 @@ app_server <- function(input, output, session) {
   yint <- reactiveVal()
   observeEvent(pvaluesVP(), {
     # initialization : adjusted p-value == 0.1
-    req(data())
+    req(data_server())
     # print("entree yint()")
     min0.1 <- which.min(abs(pvaluesAdjVP() - 0.1))
     y0.1 <- logpvaluesVP()[[min0.1]]
@@ -878,12 +878,12 @@ app_server <- function(input, output, session) {
     req(selectedGenes())
 
     ## post hoc bounds in selections
-    req(data())
-    req(thresholds(data()))
+    req(data_server())
+    req(thresholds(data_server()))
     # print("entree TP_FDP")
     n12 <- length(selectedGenes()$sel12)
     pred <- predict(
-      object = data(), S = selectedGenes()$sel12,
+      object = data_server(), S = selectedGenes()$sel12,
       what = c("TP", "FDP")
     )
     # print("sortie TP_FDP")
@@ -895,9 +895,9 @@ app_server <- function(input, output, session) {
   # calculate PHB for lasso box selection
   calcBoundSelection <- reactive({ #
     req(manuelSelected())
-    req(thresholds(data()))
+    req(thresholds(data_server()))
     # print("calcBoundSelection")
-    c(n = length(manuelSelected()), predict(data(),
+    c(n = length(manuelSelected()), predict(data_server(),
                                             S = manuelSelected(),
                                             what = c("TP", "FDP")
     ))
@@ -951,7 +951,7 @@ app_server <- function(input, output, session) {
     req(calcBoundSelection())
     # print("entree d()")
 
-    vectorGene <- names(pValues(data())[manuelSelected()])
+    vectorGene <- names(pValues(data_server())[manuelSelected()])
     # list of gene contained in gene selection
     url <- UrlStringdbGrah(vectorGene)
     # construction of link to StringDB interaction graph
@@ -976,7 +976,7 @@ app_server <- function(input, output, session) {
   })
 
   # if data changes, PHB table is cleaned
-  observeEvent(data(), { # to clean printed table
+  observeEvent(data_server(), { # to clean printed table
     newValue <- baseTable()
     tableResult(newValue)
   })
@@ -1055,17 +1055,17 @@ app_server <- function(input, output, session) {
   # value for 'NUmber of false discoverie' yaxis : optimize y line
   thr_yaxis <- reactive({
     req(alpha()) # if parameters change (not only alpha)
-    req(data())
-    req(thresholds(data()))
+    req(data_server())
+    req(thresholds(data_server()))
     req(logpvaluesVP())
-    tya <- thrYaxis(thr = thresholds(data()), maxlogp = max(logpvaluesVP()))
+    tya <- thrYaxis(thr = thresholds(data_server()), maxlogp = max(logpvaluesVP()))
     return(tya)
   })
 
   # reactive variable containing values for yaxis depending users choice
 
   yaxis <- reactive({
-    req(data())
+    req(data_server())
     f <- list(
       size = 14,
       color = "#000000"
@@ -1100,7 +1100,7 @@ app_server <- function(input, output, session) {
 
   # reactive values for threshold (used for selecting genes)
   thrLine <- reactive({
-    req(data())
+    req(data_server())
     list(
       list( # right logFC threshold vertical()[["shapes[0].x0"]]
         type = "line",
@@ -1138,8 +1138,8 @@ app_server <- function(input, output, session) {
 
   # Intialisation of volcano plot for threshold selection (part 1)
   posteriori <- reactive({
-    req(data()$bool$validation)
-    req(data())
+    req(data_server()$bool$validation)
+    req(data_server())
 
     req(logFCVP(), logpvaluesVP())
     setProgress(value = 0.9, detail = "posteriori Reactive ... ")
@@ -1316,27 +1316,27 @@ app_server <- function(input, output, session) {
 
   tableCSV <- reactiveVal() # creation of reactive variable
 
-  # initialize table when data() change
+  # initialize table when data_server() change
   observeEvent(
     {
       input$resetCSV
-      data()$input$Y
+      data_server()$input$Y
       input$buttonValidate
     },
     {
-      req(data()$input$Y)
+      req(data_server()$input$Y)
       req(selectedGenes())
-      req(data()$input$geneNames)
-      vecteur <- rep(0, dim(data()$input$Y)[1])
+      req(data_server()$input$geneNames)
+      vecteur <- rep(0, dim(data_server()$input$Y)[1])
       vecteur[selectedGenes()$sel12] <- 1
 
-      req(length(vecteur) == length(data()$input$geneNames))
+      req(length(vecteur) == length(data_server()$input$geneNames))
       print(length(vecteur))
-      print(length(data()$input$geneNames))
+      print(length(data_server()$input$geneNames))
 
       newValue <- data.frame(
         Thresholds_selection = vecteur,
-        row.names = req(data()$input$geneNames)
+        row.names = req(data_server()$input$geneNames)
       )
       # a dataframe with rowname without features
 
@@ -1346,10 +1346,10 @@ app_server <- function(input, output, session) {
 
   # When user want to change thresholds
   observeEvent(selectedGenes(), {
-    req(data()$input$Y)
+    req(data_server()$input$Y)
     req(selectedGenes())
     req(tableCSV())
-    vecteur <- rep(0, dim(data()$input$Y)[1])
+    vecteur <- rep(0, dim(data_server()$input$Y)[1])
     vecteur[selectedGenes()$sel12] <- 1
 
     # print("avant 1229")
@@ -1360,7 +1360,7 @@ app_server <- function(input, output, session) {
 
       data.frame(
         Thresholds_selection = vecteur,
-        row.names = req(data()$input$geneNames)
+        row.names = req(data_server()$input$geneNames)
       ),
 
       rigthTable
@@ -1370,9 +1370,9 @@ app_server <- function(input, output, session) {
 
   # When user selected ne gene set from lasso/box [d() activate]
   observeEvent(d(), {
-    req(data()$input$Y)
+    req(data_server()$input$Y)
     req(tableCSV())
-    vecteur <- rep(0, dim(data()$input$Y)[1])
+    vecteur <- rep(0, dim(data_server()$input$Y)[1])
     vecteur[manuelSelected()] <- 1
     nameCol <- colnames(tableCSV())
     df <- cbind(tableCSV(), selection2 = vecteur)
@@ -1427,12 +1427,15 @@ app_server <- function(input, output, session) {
   tableBoundsGroup <- reactive({
     withProgress(message = "tableBoundsGroup", {
       T1 <- Sys.time()
-      req(thresholds(req(data())))
-      req(data()$input$biologicalFunc)
+      req(thresholds(req(data_server())))
+      req(data_server()$input$biologicalFunc)
 
-      table <- boundGroup2(req(data()))
+      table <- boundGroup2(req(data_server()))
       T2 <- Sys.time()
     })
+    print("########### \n tableBoundGroup()")
+    print(head(table))
+    print("###################")
     return(table)
   })
 
@@ -1440,9 +1443,9 @@ app_server <- function(input, output, session) {
   # calculate vounds for all features to compare with each gene sets
   boundsW <- reactive({ # calculate bounds for all features
 
-    req(pValues(data()))
-    req(thresholds(data()))
-    c(n = length(nHyp(data())), predict(object = data()))
+    req(pValues(data_server()))
+    req(thresholds(data_server()))
+    c(n = length(nHyp(data_server())), predict(object = data_server()))
   })
 
 
@@ -1471,14 +1474,15 @@ app_server <- function(input, output, session) {
     req(tableBoundsGroup())
     if (input$buttonSEA == "competitive") {
       table <- tableBoundsGroup()
-      sel <- which(table[["FDP\u2264;"]] < boundsW()["FDP"])
+      sel <- which(table[["FDP\u2264"]] < boundsW()["FDP"])
       newValue <- table[sel, ]
       return(newValue)
     } else if (input$buttonSEA == "self") {
       table <- tableBoundsGroup()
-      sel <- which(table[["TP\u2265;"]] > 0)
+      sel <- which(table[["TP\u2265"]] > 0)
       return(table[sel, ])
     } else {
+      print(head(tableBoundsGroup()))
       return(tableBoundsGroup())
     }
   })
@@ -1514,8 +1518,10 @@ app_server <- function(input, output, session) {
 
   output$tableBoundsGroup <- renderDT(
     {
+      print(filteredTableBoundsGroup())
       table <- filteredTableBoundsGroup()
-      table[["FDP\u2264;"]] <- round(table[["FDP\u2264;"]], 2)
+      print(table[["FDP\u2264"]])
+      table[["FDP\u2264"]] <- round(table[["FDP\u2264"]], 2)
 
       table
     },
@@ -1539,10 +1545,10 @@ app_server <- function(input, output, session) {
 
   # list of genes selected by user
   selectionGroup <- reactive({
-    req(data()$input$biologicalFunc)
+    req(data_server()$input$biologicalFunc)
 
     group <- req(userDTselectPrio())
-    bioFun <- data()$input$biologicalFunc
+    bioFun <- data_server()$input$biologicalFunc
 
     if (inherits(bioFun, "list")) {
 
@@ -1559,7 +1565,7 @@ app_server <- function(input, output, session) {
 
   # VP2
   priori <- reactive({
-    req(data())
+    req(data_server())
     req(logFCVP())
     req(logpvaluesVP())
     f <- list(
@@ -1577,11 +1583,11 @@ app_server <- function(input, output, session) {
             ),
             name = "genes",
             type = "scattergl", mode = "markers", source = "B",
-            text = data()$input$geneNames,
+            text = data_server()$input$geneNames,
 
             customdata = paste0(
               "http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=",
-              data()$input$geneNames
+              data_server()$input$geneNames
             )
 
     ) %>%

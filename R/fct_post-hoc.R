@@ -133,8 +133,8 @@ posthoc_bound2 <- function(p.values, S = seq_along(p.values),
 #' @importFrom shiny incProgress
 boundGroup2 <- function(object) {
   table <- data.frame(
-    "Name" = c(), "# genes" = c(), "TP&ge;" = c(),
-    "FDP&le;" = c(), check.names = FALSE
+    "Name" = c(), "# genes" = c(), "TP\u2265" = c(),
+    "FDP\u2264" = c(), check.names = FALSE
   )
   bioFun <- object$input$biologicalFunc
   print(paste("boundGroup2 class is ", class(bioFun)))
@@ -149,8 +149,8 @@ boundGroup2 <- function(object) {
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP&ge;" = as.integer(bounds["TP"]),
-          "FDP&le;" = bounds["FDP"],
+          "TP\u2265" = as.integer(bounds["TP"]),
+          "FDP\u2264" = bounds["FDP"],
           check.names = FALSE, row.names = NULL
         ))
       }
@@ -165,14 +165,14 @@ boundGroup2 <- function(object) {
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
-          "TP&ge;" = as.integer(bounds["TP"]),
-          "FDP&le;" = bounds["FDP"],
+          "TP\u2265" = as.integer(bounds["TP"]),
+          "FDP\u2264" = bounds["FDP"],
           check.names = FALSE, row.names = NULL
         ))
       }
     }
   }
-  table <- table[order(table["FDP&le;"]), ]
+  table <- table[order(table["FDP\u2264"]), ]
   print("end boundGroup2")
   print("###################")
   return(table)

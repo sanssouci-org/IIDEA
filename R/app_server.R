@@ -923,8 +923,8 @@ app_server <- function(input, output, session) {
     data.frame(
       `Selection` = c("Threshold selection"),
       "# genes" = c(TP_FDP()$n12),
-      "TP≥" = as.integer(c(TP_FDP()$TP12)),
-      "FDP≤" = c(round(TP_FDP()$FDP12, 2)),
+      "TP\u2265" = as.integer(c(TP_FDP()$TP12)),
+      "FDP\u2264" = c(round(TP_FDP()$FDP12, 2)),
       check.names = FALSE, row.names = NULL
     )
   })
@@ -995,12 +995,12 @@ app_server <- function(input, output, session) {
         msg, "For example, the selection called",
         tab[1, 1],
         "contains at least",
-        tab[1, "TP≥"],
+        tab[1, "TP\u2265"],
 
         " true positives (TP) and its False Discovery Proportion (FDP)
         is less than",
 
-        tab[1, "FDP≤"]
+        tab[1, "FDP\u2264"]
       )
     }
     popify(
@@ -1147,8 +1147,8 @@ app_server <- function(input, output, session) {
       size = 14,
       color = "#000000"
     )
-    lte <- "≤"
-    gte <- "≥"
+    lte <- "\u2264"
+    gte <- "\u2265"
     p <- plot_ly(data.frame(x = req(logFCVP()), y = req(logpvaluesVP())),
                  x = ~x, y = ~y,
                  marker = list(
@@ -1471,12 +1471,12 @@ app_server <- function(input, output, session) {
     req(tableBoundsGroup())
     if (input$buttonSEA == "competitive") {
       table <- tableBoundsGroup()
-      sel <- which(table[["FDP&le;"]] < boundsW()["FDP"])
+      sel <- which(table[["FDP\u2264;"]] < boundsW()["FDP"])
       newValue <- table[sel, ]
       return(newValue)
     } else if (input$buttonSEA == "self") {
       table <- tableBoundsGroup()
-      sel <- which(table[["TP&ge;"]] > 0)
+      sel <- which(table[["TP\u2265;"]] > 0)
       return(table[sel, ])
     } else {
       return(tableBoundsGroup())
@@ -1500,12 +1500,12 @@ app_server <- function(input, output, session) {
         "For example, the selection called",
         tableBoundsGroup()[1, "Name"],
         "contains at leat",
-        tableBoundsGroup()[1, "TP≥"],
+        tableBoundsGroup()[1, "TP\u2265"],
 
         " true positives (TP) and its False Discovery Proportion (FDP)
         is less than ",
 
-        round(tableBoundsGroup()[1, "FDP≤"] * 100, 2), "%"
+        round(tableBoundsGroup()[1, "FDP\u2264"] * 100, 2), "%"
       ),
       trigger = "hover"
     )
@@ -1515,7 +1515,7 @@ app_server <- function(input, output, session) {
   output$tableBoundsGroup <- renderDT(
     {
       table <- filteredTableBoundsGroup()
-      table[["FDP&le;"]] <- round(table[["FDP&le;"]], 2)
+      table[["FDP\u2264;"]] <- round(table[["FDP\u2264;"]], 2)
 
       table
     },
@@ -1566,8 +1566,8 @@ app_server <- function(input, output, session) {
       size = 14,
       color = "#000000"
     )
-    lte <- "≤"
-    gte <- "≥"
+    lte <- "\u2264"
+    gte <- "\u2265"
 
     plot_ly(data.frame(x = logFCVP(), y = logpvaluesVP()),
             x = ~x, y = ~y,

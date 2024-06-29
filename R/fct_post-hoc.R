@@ -137,7 +137,6 @@ boundGroup2 <- function(object) {
     "FDP\u2264" = c(), check.names = FALSE
   )
   bioFun <- object$input$biologicalFunc
-  print(paste("boundGroup2 class is ", class(bioFun)))
   if (class(bioFun)[1] == "list") {
     nameFunctions <- names(bioFun)
     for (func in nameFunctions) {
@@ -173,7 +172,5 @@ boundGroup2 <- function(object) {
     }
   }
   table <- table[order(table["FDP\u2264"]), ]
-  print("end boundGroup2")
-  print("###################")
   return(table)
 }

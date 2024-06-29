@@ -4,16 +4,6 @@
 #' it to runApp() will run the app.
 #'
 #' @importFrom shiny shinyApp
-#' @import shinyjs
-#' @import DT
-#' @import ggplot2
-#' @import htmlwidgets
-#' @importFrom plotly renderPlotly
-#' @importFrom plotly plotlyOutput
-#' @import R.cache
-#' @import shinyBS
-#' @import shinyjs
-#' @importFrom matrixStats rowMaxs rowQuantiles
 #' @export
 #'
 run_IIDEA <- function() {

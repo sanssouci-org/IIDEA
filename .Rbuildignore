@@ -5,4 +5,7 @@
 ^ShinyApps$
 ^\.github$
 ^inst/ShinyApps/GSEABenchmarkeR/.*\.RDS$
+^inst/ShinyApps/GSEABenchmarkeR/express-data-set$
+^inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set$
+^inst/ShinyApps/GSEABenchmarkeR/gene-set$
 ^data$

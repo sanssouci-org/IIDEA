@@ -4,9 +4,11 @@
 #' @export
 #'
 #' @import shiny
-#' @import shinyjs
 #' @importFrom plotly plotlyOutput
 #' @import shinyBS
+#' @importFrom shinyjs useShinyjs hidden
+#' @importFrom DT DTOutput
+#' @import htmlwidgets
 app_ui <- function() {
   fluidPage(
     useShinyjs(),

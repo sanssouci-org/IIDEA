@@ -28,8 +28,6 @@
 #' - label: Label for the procedure, typically of the form 'family(param)'
 #' - bound: Value of the post hoc bound
 #' - stat: Type of post hoc bound, as specified by argument `bound`.
-#'
-#' @importFrom stats predict
 predict2 <- function(object, S = seq_len(nHyp(object)),
                      what = c("TP", "FDP"), all = FALSE, ...) {
   p.values <- pValues(object)
@@ -83,7 +81,6 @@ predict2 <- function(object, S = seq_len(nHyp(object)),
 #' - stat: Type of post hoc bound, as specified by argument `bound`.
 #'
 #' @export
-#' @importFrom stats predict
 #' @import sanssouci
 posthoc_bound2 <- function(p.values, S = seq_along(p.values),
                            thr = NULL, lab = NULL,
@@ -144,7 +141,7 @@ boundGroup2 <- function(object) {
       name <- bioFun[[func]]
       ids <- which(is.element(rownames(object$input$Y), name))
       if (length(ids) > 5) {
-        bounds <- predict2(object, S = ids)
+        bounds <- predict(object, S = ids)
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),
@@ -160,7 +157,7 @@ boundGroup2 <- function(object) {
       # incProgress(1 / length(nameFunctions))
       ids <- which(bioFun[, func] == 1)
       if (length(ids) > 1) {
-        bounds <- predict2(object, S = ids)
+        bounds <- predict(object, S = ids)
         table <- rbind(table, data.frame(
           "Name" = addUrlLink(func),
           "# genes" = length(ids),

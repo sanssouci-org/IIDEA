@@ -16,7 +16,7 @@ To run offline IIDEA, please load the package IIDEA and then run the function `s
 
 ``` r
 library("IIDEA")
-shinyApp()
+run_IIDEA()
 ```
 
 <!-- badges: start -->

@@ -12,7 +12,7 @@
 app_ui <- function() {
   fluidPage(
     useShinyjs(),
-    includeCSS("inst/ShinyApps/www/style.css"),
+    includeCSS(system.file("ShinyApps/www", "style.css", package = "IIDEA")),
 
     # Application title
     titlePanel(

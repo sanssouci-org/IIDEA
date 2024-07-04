@@ -12,6 +12,8 @@ RoxygenNote: 7.3.1
 Imports: 
     dplyr,
     DT,
+    EnrichmentBrowser,
+    GSEABenchmarkeR,
     htmlwidgets,
     magrittr,
     matrixStats,

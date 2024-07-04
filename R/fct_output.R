@@ -84,8 +84,6 @@ exampleData <- function(type) {
 #' from string-db.
 #'
 #' @return a character, the url for string-db.org
-#'
-#' @export
 UrlStringdbGrah <- function(vector) {
   vector[2:length(vector)] <- paste0("%0d", vector[2:length(vector)])
   url <- paste("https://string-db.org/api/image/network?identifiers=",
@@ -101,8 +99,6 @@ UrlStringdbGrah <- function(vector) {
 #'
 #' @return charactor of html balise
 #' @importFrom stringr str_extract_all
-#' @export
-#'
 addUrlLink <- function(name) {
   if (grepl("GO:\\d+", name)) {
     url <- paste("https://www.ebi.ac.uk/QuickGO/term/",
@@ -125,7 +121,6 @@ addUrlLink <- function(name) {
 #' @param maxlogp numeric the maximum of -log(p-values)
 #'
 #' @return data.frame with the new labels and breaks for the Volcano Plot y-axis
-#' @export
 thrYaxis <- function(thr, maxlogp) {
   if (maxlogp == Inf) {
     maxlogp <- 16

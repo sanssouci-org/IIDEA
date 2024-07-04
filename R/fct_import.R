@@ -3,7 +3,6 @@
 #' @param go.gs data frame from go.gs
 #'
 #' @return a list of cleaned data set
-#' @export
 #' @importFrom shiny incProgress
 cleanGo.GS <- function(go.gs) {
   for (i in names(go.gs)) {
@@ -22,7 +21,6 @@ cleanGo.GS <- function(go.gs) {
 #'
 #' @return a dataframe containing the dataset from the csv file
 #' @importFrom utils read.csv
-#' @export
 readCSV_sep <- function(file, ...) {
   df <- read.csv(file, sep = c(","), ...)
   if (dim(df)[2] > 1) {
@@ -56,8 +54,6 @@ readCSV_sep <- function(file, ...) {
 #' red: the matrix can be used
 #' orange: the matrix doesnt respect but IIDEA update it and can be used
 #' blue: everything is ok. Thanks ;)
-#'
-#' @export
 cleanMatrix <- function(matrixFunc) {
   text <- ""
   boolValidation <- TRUE
@@ -115,8 +111,6 @@ cleanMatrix <- function(matrixFunc) {
 #' red: the matrix can be used
 #' orange: the matrix doesnt respect but IIDEA update it and can be used
 #' blue: everything is ok. Thanks ;)
-#'
-#' @export
 cleanBiofun <- function(biofun) {
   text <- ""
   boolValidation <- TRUE
@@ -159,8 +153,6 @@ cleanBiofun <- function(biofun) {
 #' in expression matrix.  The color of the message means:
 #' green: non genes match
 #' blue: everything is ok.
-#'
-#' @export
 matchMatrixBiofun <- function(geneNames, biofun) {
   text <- ""
   boolValidation <- TRUE

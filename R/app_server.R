@@ -59,7 +59,10 @@ app_server <- function(input, output, session) {
 
     if(req(input$choiceTypeData) == "microarrays"){
 
-      filenames <- (list.files("inst/ShinyApps/GSEABenchmarkeR/express-data-set",
+      path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
+                                   package = "IIDEA")
+
+      filenames <- (list.files(path_datasets,
                                pattern = "*.RDS", full.names = TRUE
       ))
 
@@ -75,7 +78,9 @@ app_server <- function(input, output, session) {
       }), " (", (lID), ")", sep = "")
       return(lID)}
     else if (req(input$choiceTypeData) == "rnaseq"){
-      filenames <- (list.files("inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
+      path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
+                                   package = "IIDEA")
+      filenames <- (list.files(path_datasets,
                                pattern = "*.RDS", full.names = TRUE
       ))
 
@@ -83,8 +88,10 @@ app_server <- function(input, output, session) {
         return(NULL)
       }
 
-      pattern <- "inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set/(.*).RDS"
-      lID <- sapply(filenames[-1], function(filename) {gsub(pattern, "\\1", filename)})
+      pattern <- "(.*).RDS"
+      lID <- sapply(filenames[-1], function(filename) {
+        gsub(file.path(path_datasets, pattern), "\\1", filename)
+        })
       names(lID) = lID
       return(lID)
 
@@ -217,7 +224,11 @@ app_server <- function(input, output, session) {
             } else {
               # cleaning data set from GSEA data set
               setProgress(value = 0.4, detail = "GSEA data set ...")
-              rawData <- readRDS(paste("inst/ShinyApps/GSEABenchmarkeR/express-data-set/", input$choiceGSEA, ".RDS", sep = ""))
+
+              path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
+                                           package = "IIDEA")
+              rawData <- readRDS(paste(path_datasets, input$choiceGSEA,
+                                       ".RDS", sep = ""))
 
               matrix <- assays(rawData)$exprs
 
@@ -229,7 +240,9 @@ app_server <- function(input, output, session) {
 
               object$input$geneNames <- base::rownames(matrix)
 
-              object$input$biologicalFunc <- readRDS("inst/ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS")
+              path_go.gs <- system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
+                                           package = "IIDEA")
+              object$input$biologicalFunc <- readRDS(path_go.gs)
               # On a laisse sous forme de liste car on a adapte les fonctions qui en ont besoin. Plus rapide qu'en la transformant en matrice binaire
               object$bool$url <- rawData@metadata$experimentData@url
 
@@ -277,7 +290,9 @@ app_server <- function(input, output, session) {
               rm(categ)
             } else {
               setProgress(value = 0.4, detail = "GSEA data set ...")
-              rawData <- readRDS(paste("inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set/", input$choiceGSEA, ".RDS", sep = ""))
+              path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
+                                           package = "IIDEA")
+              rawData <- readRDS(paste(path_datasets, input$choiceGSEA, ".RDS", sep = ""))
               # rawData <- R.cache::memoizedCall(maPreproc,geo2kegg()[input$choiceGSEA])[[1]]
 
               matrix <- rawData
@@ -296,7 +311,9 @@ app_server <- function(input, output, session) {
 
               object$input$geneNames <- base::rownames(matrix)
 
-              object$input$biologicalFunc <- readRDS("inst/ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS")
+              path_go.gs <- system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
+                                        package = "IIDEA")
+              object$input$biologicalFunc <- readRDS(path_go.gs)
               # object$bool$url <- rawData@metadata$experimentData@url
 
               object$bool$validation <- TRUE

@@ -12,11 +12,18 @@ remotes::install_github("sanssouci-org/IIDEA")
 
 ## Run offline IIDEA
 
-To run offline IIDEA, please load the package IIDEA and then run the function `shinyApp` as 
+To run offline IIDEA, please load the package IIDEA and then run the function `run_IIDEA` as 
 
 ``` r
 library("IIDEA")
 run_IIDEA()
+```
+
+To explore other example datasets, please perform the following functions
+
+``` r 
+load_microarray_datasets()
+load_bulkRNAseq_datasets()
 ```
 
 <!-- badges: start -->

@@ -9,3 +9,4 @@
 ^inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set$
 ^inst/ShinyApps/GSEABenchmarkeR/gene-set$
 ^data$
+^.lintr$

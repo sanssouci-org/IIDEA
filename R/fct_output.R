@@ -139,7 +139,7 @@ thrYaxis <- function(thr, maxlogp) {
       100
     }
     if ((valeurTest - df1[i, "pvalue"] > 0.3 * maxlogp / 12.5) &&
-      (df1[i, "num"] %% mod == 0)) {
+        (df1[i, "num"] %% mod == 0)) {
       df2 <- rbind(df2, (df1[i, ]))
       valeurTest <- df1[i, "pvalue"]
     }

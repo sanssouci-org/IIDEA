@@ -1,21 +1,27 @@
 library(GSEABenchmarkeR)
 
-# change work directory to create Example data set (work also with deployed version)
+# change work directory to create Example data set (work also with deployed
+# version)
 orwd <- getwd()
-newwd <- dir(".", "GSEABenchmarkeR", all.files = TRUE, recursive=TRUE, full.names=TRUE, include.dirs=TRUE)
-setwd(paste0(getwd(),'/', newwd))
+newwd <- dir(".", "GSEABenchmarkeR",
+  all.files = TRUE, recursive = TRUE,
+  full.names = TRUE, include.dirs = TRUE
+)
+setwd(paste0(getwd(), "/", newwd))
 
-if (!dir.exists("express-RNAseq-data-set")){
+if (!dir.exists("express-RNAseq-data-set")) {
   dir.create("express-RNAseq-data-set")
 }
-if (!dir.exists("gene-set")){
+if (!dir.exists("gene-set")) {
   dir.create("gene-set")
 }
 
-nameGSE <- c("BRCA", "HNSC", "KICH", "KIRC", "KIRP",
-             "LUSC", "PRAD", "STAD", "UCEC")
-data <- R.cache::memoizedCall(GSEABenchmarkeR::loadEData,"tcga")
-for (name in nameGSE){
+name_gse <- c(
+  "BRCA", "HNSC", "KICH", "KIRC", "KIRP",
+  "LUSC", "PRAD", "STAD", "UCEC"
+)
+data <- R.cache::memoizedCall(GSEABenchmarkeR::loadEData, "tcga")
+for (name in name_gse) {
   print(name)
 
   matrix <- SummarizedExperiment::assays(data[[name]])$exprs
@@ -24,27 +30,28 @@ for (name in nameGSE){
   categ <- cats$GROUP[ww]
   colnames(matrix) <- categ
 
-  saveRDS(matrix, file=paste("express-RNAseq-data-set/",name,".RDS", sep = ""))
+  saveRDS(matrix, file = paste("express-RNAseq-data-set/", name, ".RDS",
+                               sep = ""))
   print("ok")
 }
 
 
-go.gs <- R.cache::memoizedCall(EnrichmentBrowser::getGenesets,
-                               org = "hsa", db = "go", onto = "BP", mode = "GO.db")
+go_gs <- R.cache::memoizedCall(EnrichmentBrowser::getGenesets,
+  org = "hsa", db = "go", onto = "BP", mode = "GO.db"
+)
 
-cleanGo.GS <- function(go.gs){
-  for(i in names(go.gs)){
-    if(length(go.gs[[i]])<10){
-      go.gs[i] <- NULL
+clean_go_gs <- function(go_gs) {
+  for (i in names(go_gs)) {
+    if (length(go_gs[[i]]) < 10) {
+      go_gs[i] <- NULL
     }
   }
-  return(go.gs)
-
+  return(go_gs)
 }
 
-go.gs <- R.cache::memoizedCall(cleanGo.GS, go.gs) # our func
+go_gs <- R.cache::memoizedCall(clean_go_gs, go_gs) # our func
 
-saveRDS(go.gs, file="gene-set/go.gs.RDS")
+saveRDS(go_gs, file = "gene-set/go.gs.RDS")
 
 print("go.gs done")
 

@@ -13,12 +13,4 @@ library("stringr")
 library("R.cache")
 library("IIDEA")
 
-
-
-# data(expr_ALL, package = "sanssouci.data", envir = environment())
-# data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
-# data(RNAseq_blca, package = "sanssouci.data", envir = environment())
-# data(RNAseq_blca_GO, package = "sanssouci.data", envir = environment())
-
-
 IIDEA::app_ui()

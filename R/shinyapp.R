@@ -7,6 +7,5 @@
 #' @export
 #'
 run_IIDEA <- function() {
-  # shinyAppDir("inst/ShinyApps/")
   shinyApp(ui = app_ui(), server = app_server)
 }

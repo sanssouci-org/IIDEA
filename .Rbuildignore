@@ -10,3 +10,7 @@
 ^inst/ShinyApps/GSEABenchmarkeR/gene-set$
 ^data$
 ^.lintr$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^dev.history.R

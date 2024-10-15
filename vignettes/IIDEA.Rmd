@@ -8,13 +8,12 @@ output:
     toc: yes
   pdf_document: default
 bibliography: sanssouci.bib
-vignette: |
+vignette: >
   %\VignetteIndexEntry{IIDEA: Interactive Inference for Differential Expression Analyses}
-  %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteDepends{sanssouci.data}
+  %\VignetteEncoding{UTF-8}
 ---
-  
+
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
 collapse = TRUE,

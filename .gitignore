@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+dev.history.R
 
 # Session Data files
 .RData
@@ -45,3 +46,5 @@ vignettes/*.pdf
 /data
 
 .lintr
+inst/doc
+docs

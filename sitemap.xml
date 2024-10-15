@@ -1,0 +1,24 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/UrlStringdbGrah.html</loc></url>
+<url><loc>/reference/addUrlLink.html</loc></url>
+<url><loc>/reference/app_server.html</loc></url>
+<url><loc>/reference/app_ui.html</loc></url>
+<url><loc>/reference/boundGroup2.html</loc></url>
+<url><loc>/reference/cleanBiofun.html</loc></url>
+<url><loc>/reference/cleanGo.GS.html</loc></url>
+<url><loc>/reference/cleanMatrix.html</loc></url>
+<url><loc>/reference/exampleData.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/load_bulkRNAseq_datasets.html</loc></url>
+<url><loc>/reference/load_microarray_datasets.html</loc></url>
+<url><loc>/reference/matchMatrixBiofun.html</loc></url>
+<url><loc>/reference/pipe.html</loc></url>
+<url><loc>/reference/readCSV_sep.html</loc></url>
+<url><loc>/reference/run_IIDEA.html</loc></url>
+<url><loc>/reference/thrYaxis.html</loc></url>
+</urlset>
+

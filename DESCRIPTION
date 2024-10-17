@@ -1,6 +1,6 @@
 Package: IIDEA
 Title: Interactive Inference for Differential expression analyses
-Version: 0.0.0.9000
+Version: 0.0.1.0
 Authors@R: 
     person("Nicolas", "Enjalbert Courrech", , "nicolas.enjalbert-courrech@math.univ-toulouse.fr", role = c("aut", "cre"),
     person("Pierre", "Neuvial", , "pierre.neuvial@math.cnrs.fr", role = c('aut')))

@@ -15,6 +15,10 @@ remotes::install_github("sanssouci-org/IIDEA")
 To run offline IIDEA, please load the package IIDEA and then run the function `run_IIDEA` as 
 
 ``` r
+IIDEA::run_IIDEA()
+```
+or 
+``` r
 library("IIDEA")
 run_IIDEA()
 ```

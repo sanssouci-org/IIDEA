@@ -8,6 +8,7 @@
 #' @export
 #' @import sanssouci.data
 #' @import sanssouci
+#' @importFrom stats predict
 #' @import shiny
 #' @importFrom shinyjs disable enable reset show hide
 #' @importFrom matrixStats rowMaxs rowQuantiles
@@ -944,7 +945,7 @@ app_server <- function(input, output, session) {
   observeEvent(TP_FDP(), { # When threshold change
 
     bottomTable <- tableResult() %>% # keep box/lasso selection
-      dplyr::filter(Selection != "Threshold selection")
+      dplyr::filter(.data$Selection != "Threshold selection")
     # remove row named "Threshold selection"
     upperTable <- baseTable()
     # take new value of PHB for the new threshold selection
@@ -1313,6 +1314,7 @@ app_server <- function(input, output, session) {
 
   tableCSV <- reactiveVal() # creation of reactive variable
 
+
   # initialize table when data_server() change
   observeEvent(
     {
@@ -1348,7 +1350,7 @@ app_server <- function(input, output, session) {
     vecteur[selectedGenes()$sel12] <- 1
 
     rigthTable <- tableCSV() %>%
-      dplyr::select(-Thresholds_selection)
+      dplyr::select(!c(.data$Thresholds_selection))
     df <- cbind(
       data.frame(
         Thresholds_selection = vecteur,
@@ -1361,6 +1363,7 @@ app_server <- function(input, output, session) {
 
   # When user selected ne gene set from lasso/box [d() activate]
   observeEvent(d(), {
+
     req(data_server()$input$Y)
     req(tableCSV())
     vecteur <- rep(0, dim(data_server()$input$Y)[1])

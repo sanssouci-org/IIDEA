@@ -1,4 +1,4 @@
-#' user interface of IIDEA
+#' User interface of IIDEA
 #'
 #' @return UI structure of IIDEA
 #' @export

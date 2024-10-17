@@ -9,3 +9,5 @@
 run_IIDEA <- function() {
   shinyApp(ui = app_ui(), server = app_server)
 }
+
+utils::globalVariables(c(".data"))

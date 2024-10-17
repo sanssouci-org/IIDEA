@@ -9,3 +9,10 @@
 ^inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set$
 ^inst/ShinyApps/GSEABenchmarkeR/gene-set$
 ^data$
+^.lintr$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^dev.history.R
+^R/profvis_shiny_IIDEA.R
+^2024-07-11_18-44-32.Rprof

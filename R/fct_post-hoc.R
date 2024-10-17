@@ -12,6 +12,7 @@
 #' @export
 #' @importFrom shiny incProgress
 #' @import sanssouci
+#' @importFrom stats predict
 boundGroup2 <- function(object) {
   table <- data.frame(
     "Name" = c(), "# genes" = c(), "TP\u2265" = c(),
@@ -52,6 +53,6 @@ boundGroup2 <- function(object) {
       }
     }
   }
-  table <- table[order(table["FDP\u2264"]), ]
+  table <- table[order(table[["FDP\u2264"]]), ]
   return(table)
 }

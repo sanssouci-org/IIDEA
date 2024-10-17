@@ -8,11 +8,12 @@
 #' @export
 #' @import sanssouci.data
 #' @import sanssouci
+#' @importFrom stats predict
 #' @import shiny
 #' @importFrom shinyjs disable enable reset show hide
 #' @importFrom matrixStats rowMaxs rowQuantiles
-#' @importFrom plotly event_data plotlyProxyInvoke plot_ly add_markers event_register
-#' config toWebGL plotlyProxy layout renderPlotly
+#' @importFrom plotly event_data plotlyProxyInvoke plot_ly add_markers
+#' event_register config toWebGL plotlyProxy layout renderPlotly
 #' @importFrom stats p.adjust
 #' @importFrom utils zip str write.csv data
 #' @importFrom stringr str_remove_all
@@ -21,7 +22,6 @@
 #' @importFrom DT renderDT
 #' @import R.cache
 app_server <- function(input, output, session) {
-
   data(expr_ALL, package = "sanssouci.data", envir = environment())
   data(expr_ALL_GO, package = "sanssouci.data", envir = environment())
   data(RNAseq_blca, package = "sanssouci.data", envir = environment())
@@ -34,7 +34,6 @@ app_server <- function(input, output, session) {
       href = "https://sanssouci-org.github.io/sanssouci/articles/IIDEA.html",
       target = "_blank"
     )
-
   })
 
   ###################
@@ -44,26 +43,23 @@ app_server <- function(input, output, session) {
   ## button run
 
   isolate({
-
     disable("buttonValidate")
   }) # while geo2kegg is not loaded, user cannot "run" #Initialization
 
-  observeEvent(object_I(), { # object is loaded, user can "run"
+  observeEvent(object_input(), { # object is loaded, user can "run"
     enable("buttonValidate")
-
   })
 
   ## input for example data sets
 
   namesExampleFile <- reactive({
-
-    if(req(input$choiceTypeData) == "microarrays"){
-
+    if (req(input$choiceTypeData) == "microarrays") {
       path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
-                                   package = "IIDEA")
+        package = "IIDEA"
+      )
 
       filenames <- (list.files(path_datasets,
-                               pattern = "*.RDS", full.names = TRUE
+        pattern = "*.RDS", full.names = TRUE
       ))
 
       if (length(filenames) == 0) {
@@ -76,12 +72,14 @@ app_server <- function(input, output, session) {
       names(lID) <- paste(sapply(ldf, function(l) {
         l@metadata$experimentData@other$disease
       }), " (", (lID), ")", sep = "")
-      return(lID)}
-    else if (req(input$choiceTypeData) == "rnaseq"){
-      path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
-                                   package = "IIDEA")
+      return(lID)
+    } else if (req(input$choiceTypeData) == "rnaseq") {
+      path_datasets <-
+        system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
+          package = "IIDEA"
+        )
       filenames <- (list.files(path_datasets,
-                               pattern = "*.RDS", full.names = TRUE
+        pattern = "*.RDS", full.names = TRUE
       ))
 
       if (length(filenames) == 0) {
@@ -91,10 +89,9 @@ app_server <- function(input, output, session) {
       pattern <- "(.*).RDS"
       lID <- sapply(filenames[-1], function(filename) {
         gsub(file.path(path_datasets, pattern), "\\1", filename)
-        })
-      names(lID) = lID
+      })
+      names(lID) <- lID
       return(lID)
-
     }
   }) # get names of data sets
 
@@ -104,21 +101,21 @@ app_server <- function(input, output, session) {
     req(input$choiceTypeData)
     if (req(input$choiceTypeData) == "microarrays") {
       selectInput("choiceGSEA",
-                  label = "Choose a gene data set",
-                  choices = c(
-                    "Leukemia (ALL): BCR/ABL mutated vs wild type" = "OurData",
-                    namesExampleFile()
-                  )
+        label = "Choose a gene data set",
+        choices = c(
+          "Leukemia (ALL): BCR/ABL mutated vs wild type" = "OurData",
+          namesExampleFile()
+        )
       )
     } else if (req(input$choiceTypeData) == "rnaseq") {
       selectInput("choiceGSEA",
-                  label = "Choose a gene data set",
-                  choices = c("Urothelial Bladder Carcinoma: stage II vs stage III" = "BLCA",
-                              namesExampleFile()
-                  )
+        label = "Choose a gene data set",
+        choices = c(
+          "Urothelial Bladder Carcinoma: stage II vs stage III" = "BLCA",
+          namesExampleFile()
+        )
       )
     }
-
   })
 
   ## Download our example data set, loaded from sanssouci.data
@@ -191,14 +188,15 @@ app_server <- function(input, output, session) {
   logFCVP <- reactiveVal(NULL)
 
   ## Cleaning data
-  object_I <-
+  object_input <-
     reactive({
       # eventReactive(input$buttonValidate, {
       withProgress(value = 0, message = "Upload Data... ", {
         if (input$checkboxDemo) { # if example data set
 
           if (req(input$choiceTypeData) == "microarrays") {
-            if (req(input$choiceGSEA) == "OurData" | req(input$choiceGSEA) == "BLCA") {
+            if (req(input$choiceGSEA) == "OurData" |
+                  req(input$choiceGSEA) == "BLCA") {
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- expr_ALL # read data from sanssouci.data
@@ -207,12 +205,19 @@ app_server <- function(input, output, session) {
               categ <- rep(1, length(cat))
               categ[which(cat == "NEG")] <- 0
 
-              object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) # create SansSouci object
+              object <- SansSouci(
+                Y = as.matrix(matrix),
+                groups = as.numeric(categ)
+              )
+              # create SansSouci object
               object$input$geneNames <- rownames(matrix)
-              setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
+              setProgress(
+                value = 0.7,
+                detail = "Preparation of gene set data ...  "
+              )
 
               bioFun <- expr_ALL_GO
-              stopifnot(nrow(bioFun) == nrow(matrix)) ## sanity check: dimensions
+              stopifnot(nrow(bioFun) == nrow(matrix)) # sanity check: dimensions
               mm <- match(base::rownames(bioFun), base::rownames(matrix))
               stopifnot(!any(is.na(mm)))
               object$input$biologicalFunc <- bioFun[mm, ]
@@ -225,10 +230,14 @@ app_server <- function(input, output, session) {
               # cleaning data set from GSEA data set
               setProgress(value = 0.4, detail = "GSEA data set ...")
 
-              path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
-                                           package = "IIDEA")
+              path_datasets <-
+                system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
+                  package = "IIDEA"
+                )
               rawData <- readRDS(paste(path_datasets, input$choiceGSEA,
-                                       ".RDS", sep = ""))
+                ".RDS",
+                sep = ""
+              ))
 
               matrix <- assays(rawData)$exprs
 
@@ -240,24 +249,30 @@ app_server <- function(input, output, session) {
 
               object$input$geneNames <- base::rownames(matrix)
 
-              path_go.gs <- system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
-                                           package = "IIDEA")
-              object$input$biologicalFunc <- readRDS(path_go.gs)
-              # On a laisse sous forme de liste car on a adapte les fonctions qui en ont besoin. Plus rapide qu'en la transformant en matrice binaire
+              path_go_gs <-
+                system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
+                  package = "IIDEA"
+                )
+              object$input$biologicalFunc <- readRDS(path_go_gs)
+              # On a laisse sous forme de liste car on a adapte les fonctions
+              # qui en ont besoin. Plus rapide qu'en la transformant en
+              # matrice binaire
               object$bool$url <- rawData@metadata$experimentData@url
 
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
             }
           } else if (req(input$choiceTypeData) == "rnaseq") {
-            if (req(input$choiceGSEA) == "BLCA" | req(input$choiceGSEA) == "OurData") {
+            if (req(input$choiceGSEA) == "BLCA" |
+                  req(input$choiceGSEA) == "OurData") {
               # cleaning for data from sanssouci.data
               setProgress(value = 0.4, detail = "sanssouci data set ...")
               matrix <- RNAseq_blca # read data from sanssouci.data
 
               CPM <- matrix / colSums(matrix) * 1e6
-              # plot(density(rowMaxs(log(1 + CPM))))
-              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM), prob = 0.75)
+              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM),
+                prob = 0.75
+              )
               ww <- which(row_quantiles < log(1 + 5))
               matrix <- log(1 + CPM[-ww, ])
 
@@ -266,17 +281,27 @@ app_server <- function(input, output, session) {
               categ <- rep(1, length(cat))
               categ[which(cat == "II")] <- 0
 
-              object <- SansSouci(Y = as.matrix(matrix), groups = as.numeric(categ)) # create SansSouci object
+              object <- SansSouci(
+                Y = as.matrix(matrix),
+                groups = as.numeric(categ)
+              )
+              # create SansSouci object
               object$input$geneNames <- rownames(matrix)
 
-              setProgress(value = 0.7, detail = "Preparation of gene set data ...  ")
+              setProgress(
+                value = 0.7,
+                detail = "Preparation of gene set data ...  "
+              )
 
               bioFun <- RNAseq_blca_GO # read data from sanssouci.data
               ## sanity check: all genes are annotated
               mm <- match(base::rownames(matrix), base::rownames(bioFun))
               stopifnot(!any(is.na(mm)))
               bioFun <- bioFun[mm, ]
-              stopifnot(identical(base::rownames(matrix), base::rownames(bioFun)))
+              stopifnot(identical(
+                base::rownames(matrix),
+                base::rownames(bioFun)
+              ))
 
               # make sure at least 3 genes for each GO *after filtering*
               bioFun <- bioFun[, colSums(bioFun) >= 3]
@@ -290,18 +315,22 @@ app_server <- function(input, output, session) {
               rm(categ)
             } else {
               setProgress(value = 0.4, detail = "GSEA data set ...")
-              path_datasets <- system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
-                                           package = "IIDEA")
-              rawData <- readRDS(paste(path_datasets, input$choiceGSEA, ".RDS", sep = ""))
-              # rawData <- R.cache::memoizedCall(maPreproc,geo2kegg()[input$choiceGSEA])[[1]]
+              path_datasets <-
+                system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
+                  package = "IIDEA"
+                )
+              rawData <- readRDS(paste(path_datasets, input$choiceGSEA, ".RDS",
+                sep = ""
+              ))
 
               matrix <- rawData
 
               CPM <- matrix / colSums(matrix) * 1e6
-              # plot(density(rowMaxs(log(1 + CPM))))
               row_maxs <- matrixStats::rowMaxs(CPM)
               ww <- which(row_maxs < 10)
-              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM), prob = 0.75)
+              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM),
+                prob = 0.75
+              )
               ww <- which(row_quantiles < log(1 + 5))
               matrix <- log(1 + CPM[-ww, ])
 
@@ -311,35 +340,39 @@ app_server <- function(input, output, session) {
 
               object$input$geneNames <- base::rownames(matrix)
 
-              path_go.gs <- system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
-                                        package = "IIDEA")
-              object$input$biologicalFunc <- readRDS(path_go.gs)
-              # object$bool$url <- rawData@metadata$experimentData@url
+              path_go_gs <-
+                system.file("ShinyApps/GSEABenchmarkeR/gene-set/go.gs.RDS",
+                  package = "IIDEA"
+                )
+              object$input$biologicalFunc <- readRDS(path_go_gs)
 
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
-
             }
           }
         } else {
           # if user use his own data
-          # req(input$fileData, input$fileLightData)
-          # req(fileData(), fileLightData())
           req(isTruthy(fileData()) || isTruthy(fileLightData()))
-          # file <- req(fileData())
 
-          is.expressionMatrix <- !is.null((fileData()))
-          is.VPMatrix <- !is.null((fileLightData()))
+          is.expression.matrix <- !is.null((fileData()))
+          is.vp.matrix <- !is.null((fileLightData()))
           setProgress(value = 0.1, detail = "Read csv ...")
 
-          if(is.expressionMatrix){
-            matrix <- readCSV_sep(file = fileData()$datapath, row.names = 1, check.names = FALSE)
+          if (is.expression.matrix) {
+            matrix <- readCSV_sep(
+              file = fileData()$datapath, row.names = 1,
+              check.names = FALSE
+            )
             setProgress(value = 0.4, detail = "Clean data set ...")
             clean <- cleanMatrix(matrix) # see cleanMatrix function :
             ### give specific issue for non available matrix
-            ### if matrix is not available, matrix == NULL allows to block the calibration JER and the printing
+            ### if matrix is not available, matrix == NULL allows to block the
+            # calibration JER and the printing
             if (clean$boolValidation) { # if matrix is ok
-              object <- SansSouci(Y = as.matrix(clean$data), groups = as.numeric(colnames(clean$data)))
+              object <- SansSouci(
+                Y = as.matrix(clean$data),
+                groups = as.numeric(colnames(clean$data))
+              )
 
               object$input$geneNames <- base::rownames(clean$data)
             } else { # if isn't
@@ -378,14 +411,16 @@ app_server <- function(input, output, session) {
             )
           }
 
-          if (is.VPMatrix){
-            VPmatrix <- readCSV_sep(file = fileLightData()$datapath,
-                                    row.names = 1, check.names = FALSE)
+          if (is.vp.matrix) {
+            VPmatrix <- readCSV_sep(
+              file = fileLightData()$datapath,
+              row.names = 1, check.names = FALSE
+            )
             setProgress(value = 0.2, detail = "Test data ...")
             pvaluesVP((VPmatrix[["p.value"]]))
             logFCVP(VPmatrix[["fc"]])
             setProgress(value = 0.4, detail = "Add pvalues and logFC ...")
-            if(!is.expressionMatrix){
+            if (!is.expression.matrix) {
               m <- dim(VPmatrix)[1]
               input <- list(m = m, geneNames = base::rownames(VPmatrix))
               alpha <- 0.1
@@ -399,15 +434,14 @@ app_server <- function(input, output, session) {
                 estimate = VPmatrix[["fc"]]
               )
 
-              object$input = input
-              object$parameters = parameters
-              object$output = output
+              object$input <- input
+              object$parameters <- parameters
+              object$output <- output
               object$bool$validation <- TRUE
             }
-
           }
 
-          object$bool$degrade <- !is.expressionMatrix & is.VPMatrix
+          object$bool$degrade <- !is.expression.matrix & is.vp.matrix
 
 
           setProgress(value = 0.7, detail = "Preparation of gene set data ...")
@@ -416,13 +450,11 @@ app_server <- function(input, output, session) {
           fileGroup <- fileGroup()
           if (!is.null(fileGroup)) {
             setProgress(value = 0.75, detail = "Read gene set data ...")
-            T1 <- Sys.time()
 
             bioFun <- readCSV_sep(
               file = fileGroup$datapath, row.names = 1,
               check.names = FALSE
             )
-            T2 <- Sys.time()
 
             setProgress(value = 0.8, detail = "Cleaning of gene set data ...")
             cleanBio <- cleanBiofun(bioFun) # cleaning and message error
@@ -442,7 +474,6 @@ app_server <- function(input, output, session) {
             )
             # verification compatibility between the two matrices
             if (matchBio$boolValidation & cleanBio$boolValidation) {
-
               object$input$biologicalFunc <- as.matrix(matchBio$biofun)
             } else { # if not ok
               object$input$biologicalFunc <- NULL
@@ -463,7 +494,7 @@ app_server <- function(input, output, session) {
 
   data_server <- reactiveVal()
   observe({
-    data_server(req(object_I()))
+    data_server(req(object_input()))
   })
 
 
@@ -473,12 +504,11 @@ app_server <- function(input, output, session) {
     # give link to description of geo2kegg data sets
 
     req(input$choiceGSEA)
-    req(object_I()$bool$url)
+    req(object_input()$bool$url)
     return(a("URL of data set description",
-             href = object_I()$bool$url,
-             target = "_blank"
+      href = object_input()$bool$url,
+      target = "_blank"
     ))
-
   })
   output$msgURLds <- renderUI({
     req(urlDataSet)
@@ -490,22 +520,22 @@ app_server <- function(input, output, session) {
   # express gene matrix error
   output$errorInput <- renderUI({
     tags$span(
-      style = req(object_I()$bool$matrix.color),
-      paste(req(object_I()$bool$matrix.text))
+      style = req(object_input()$bool$matrix.color),
+      paste(req(object_input()$bool$matrix.text))
     )
   })
   # gene set matrix error
   output$errorBioMatrix <- renderUI({
     tags$span(
-      style = req(object_I()$bool$bioFun.color),
-      paste(req(object_I()$bool$bioFun.text))
+      style = req(object_input()$bool$bioFun.color),
+      paste(req(object_input()$bool$bioFun.text))
     )
   })
   # no common gene b/w expression gene matrix and gene set matrix
   output$errorMatch <- renderUI({
     tags$span(
-      style = req(object_I()$bool$match.color),
-      paste(req(object_I()$bool$match.text))
+      style = req(object_input()$bool$match.color),
+      paste(req(object_input()$bool$match.text))
     )
   })
 
@@ -542,28 +572,27 @@ app_server <- function(input, output, session) {
 
   # Test statistic
   output$teststatUI <- renderUI({ # create input
-    # req(input$choiceTypeData)
 
     selectInput("teststat",
-                label = "Choose a test statistic for the calibration",
-                choices = switch(req(input$choiceTypeData),
-                                 microarrays = c(
-                                   "Welch test" = rowWelchTests
-                                 ),
-                                 rnaseq = c(
-                                   "Wilcoxon test" = rowWilcoxonTests
-                                 )
-                )
+      label = "Choose a test statistic for the calibration",
+      choices = switch(req(input$choiceTypeData),
+        microarrays = c(
+          "Welch test" = rowWelchTests
+        ),
+        rnaseq = c(
+          "Wilcoxon test" = rowWilcoxonTests
+        )
+      )
     )
   })
 
 
   rowTestFUN <- reactiveVal()
-  observeEvent(object_I(), {
+  observeEvent(object_input(), {
     req(input$choiceTypeData)
     newValue <- switch(input$choiceTypeData,
-                       microarrays = rowWelchTests,
-                       rnaseq = rowWilcoxonTests
+      microarrays = rowWelchTests,
+      rnaseq = rowWilcoxonTests
     )
   })
 
@@ -597,22 +626,22 @@ app_server <- function(input, output, session) {
   # parameter K
   ## dynamic input (need matrixChosen())
   output$inputK <- renderUI({
-    req(object_I())
+    req(object_input())
     numericInput("valueK",
-                 label = "K (size of reference family)",
-                 value = numKI(),
-                 min = 1,
-                 max = nrow(req(object_I()$input$Y))
+      label = "K (size of reference family)",
+      value = numKI(),
+      min = 1,
+      max = nrow(req(object_input()$input$Y))
     )
   })
 
   ## numKI() is used to intiate the printed input valueK
   numKI <- reactiveVal()
   observe({ # Initialization, if refFamily == 'Beta' or not
-    req(object_I())
+    req(object_input())
     newValue <- ifelse(input$refFamily == "Beta",
-                       round(2 * req(nrow(object_I()$input$Y)) / 100),
-                       req(nrow(object_I()$input$Y))
+      round(2 * req(nrow(object_input()$input$Y)) / 100),
+      req(nrow(object_input()$input$Y))
     )
     numKI(newValue)
   })
@@ -623,9 +652,9 @@ app_server <- function(input, output, session) {
   # if the parameters are not activated, input$valueK doesn't exist
   # and therefore we don't have the right result...
   # why ? CalibrateJER should handle if K is null, right?
-  observeEvent(object_I(), {
-    req(object_I()) # when object_I() is change, INITIALISATION of numK()
-    newValue <- req(nrow(object_I()$input$Y))
+  observeEvent(object_input(), {
+    req(object_input()) # when object_input() is change, INITIALISATION of numK()
+    newValue <- req(nrow(object_input()$input$Y))
     numK(newValue)
   })
   # When Run is clicked : we get the input value.
@@ -645,16 +674,14 @@ app_server <- function(input, output, session) {
       paste(
         "A matrix containing p-values and fold change is detected.",
         "Thus, you cannot change the following advanced parameters:\n",
-        "Reference family = 'Simes',\n K = ", length(object_I()$output$p.value)
+        "Reference family = 'Simes',\n K = ", length(object_input()$output$p.value)
       )
     )
-
   })
 
   observe({
-    req(object_I())
-    if (object_I()$bool$degrade) {
-
+    req(object_input())
+    if (object_input()$bool$degrade) {
       show("msgLight")
 
 
@@ -682,36 +709,34 @@ app_server <- function(input, output, session) {
   observeEvent(input$buttonValidate, {
     req(data_server()$bool$validation)
 
-    is.expressionMatrix <- !is.null((fileData()))
-    is.VPMatrix <- !is.null((fileLightData()))
+    is.expression.matrix <- !is.null((fileData()))
+    is.vp.matrix <- !is.null((fileLightData()))
 
-    if (is.expressionMatrix | input$checkboxDemo) { # non light version
+    if (is.expression.matrix | input$checkboxDemo) { # non light version
 
       withProgress(value = 0, message = "Perform calibration ... ", {
         incProgress(amount = 0.3)
         rTF <- req(rowTestFUN())
         if (!is.function(class(rTF))) {
-          rTF <- req(eval(parse(text = rowTestFUN()), envir = environment(rowWelchTests)))
+          rTF <- req(eval(parse(text = rowTestFUN()),
+            envir = environment(rowWelchTests)
+          ))
         }
-        t1 <- Sys.time()
         object <- fit(data_server(),
-                      alpha = req(alpha()),
-                      B = numB(),
-                      rowTestFUN = rTF,
-                      alternative = alternative(),
-                      family = refFamily(),
-                      K = numK()
+          alpha = req(alpha()),
+          B = numB(),
+          rowTestFUN = rTF,
+          alternative = alternative(),
+          family = refFamily(),
+          K = numK()
         )
 
-        t2 <- Sys.time()
-
-        if (!is.VPMatrix | input$checkboxDemo){
+        if (!is.vp.matrix | input$checkboxDemo) {
           pvaluesVP((pValues(object)))
           logFCVP(foldChanges(object))
         }
         setProgress(value = 0.7, detail = "Done")
       })
-
     } else { # light version
       # matrices with pval and fc are in the object since its creation
 
@@ -765,7 +790,7 @@ app_server <- function(input, output, session) {
       xint2(-abs(newValue))
     } else {
       newValue <- vertical()[["shapes[0].x0"]]
-      if(newValue <xint2()){
+      if (newValue < xint2()) {
         exchange <- xint2()
         xint2(newValue)
         newValue <- exchange
@@ -786,7 +811,7 @@ app_server <- function(input, output, session) {
       xint2(-abs(newValue))
     } else {
       newValue <- vertical()[["shapes[2].x0"]]
-      if(newValue > xint()){
+      if (newValue > xint()) {
         exchange <- xint()
         xint(newValue)
         newValue <- exchange
@@ -813,7 +838,6 @@ app_server <- function(input, output, session) {
     if (length(y_sel) > 0) {
       newValue <- min(logpvaluesVP()[y_sel])
       # threshold on the log(p-value) scale
-
     }
     yint(newValue)
   })
@@ -824,17 +848,14 @@ app_server <- function(input, output, session) {
 
   # selected genes for server calcuation
   selectedGenes <- reactive({
-    req(logFCVP(),logpvaluesVP())
-    # data.frame(x = req(logFCVP()), y = req(pvaluesVP()))
+    req(logFCVP(), logpvaluesVP())
     ## gene selections
     sel1 <- which(logpvaluesVP() >= yint() &
                     logFCVP() >= xint()) # upper right
     sel2 <- which(logpvaluesVP() >= yint() &
                     logFCVP() <= xint2()) # upper left
-
     sel12 <- sort(union(sel1, sel2)) # both
     return(list(sel1 = sel1, sel2 = sel2, sel12 = sel12))
-
   })
 
 
@@ -890,10 +911,9 @@ app_server <- function(input, output, session) {
     req(manuelSelected())
     req(thresholds(data_server()))
     c(n = length(manuelSelected()), predict(data_server(),
-                                            S = manuelSelected(),
-                                            what = c("TP", "FDP")
+      S = manuelSelected(),
+      what = c("TP", "FDP")
     ))
-
   })
 
 
@@ -925,7 +945,7 @@ app_server <- function(input, output, session) {
   observeEvent(TP_FDP(), { # When threshold change
 
     bottomTable <- tableResult() %>% # keep box/lasso selection
-      filter(`Selection` != "Threshold selection")
+      dplyr::filter(.data$Selection != "Threshold selection")
     # remove row named "Threshold selection"
     upperTable <- baseTable()
     # take new value of PHB for the new threshold selection
@@ -946,8 +966,9 @@ app_server <- function(input, output, session) {
     n <- dim(tableResult())[1]
     newValue <- rbind(tableResult(), c(
       paste('<a target="_blank" href="', url, '" >User selection ',
-            n, "</a>", sep = ""),
-
+        n, "</a>",
+        sep = ""
+      ),
       calcBoundSelection()["n"],
       calcBoundSelection()["TP"],
       round(calcBoundSelection()["FDP"], 2)
@@ -983,19 +1004,16 @@ app_server <- function(input, output, session) {
         tab[1, 1],
         "contains at least",
         tab[1, "TP\u2265"],
-
         " true positives (TP) and its False Discovery Proportion (FDP)
         is less than",
-
         tab[1, "FDP\u2264"]
       )
     }
     popify(
       el = bsButton("QtableBounds",
-                    label = "", icon = icon("question"),
-                    style = "info", size = "extra-small"
+        label = "", icon = icon("question"),
+        style = "info", size = "extra-small"
       ),
-
       title = "Data",
       content = msg,
       trigger = "hover"
@@ -1008,7 +1026,6 @@ app_server <- function(input, output, session) {
       req(TP_FDP())
       tableResult()
     },
-
     selection = list(mode = "single", selectable = -(1))
     # can select only one row and not the first one
 
@@ -1043,7 +1060,10 @@ app_server <- function(input, output, session) {
     req(data_server())
     req(thresholds(data_server()))
     req(logpvaluesVP())
-    tya <- thrYaxis(thr = thresholds(data_server()), maxlogp = max(logpvaluesVP()))
+    tya <- thrYaxis(
+      thr = thresholds(data_server()),
+      maxlogp = max(logpvaluesVP())
+    )
     return(tya)
   })
 
@@ -1056,29 +1076,30 @@ app_server <- function(input, output, session) {
       color = "#000000"
     )
     yaxis <- switch(input$choiceYaxis,
-                    "pval" = list(
-                      title = "p-value (-log[10] scale)",
-                      titlefont = f
-                    ),
-                    "adjPval" = list(
-                      title = "Adjusted p-value (-log[10] scale)",
-                      titlefont = f,
-                      autotick = FALSE,
-                      tickmode = "array",
-                      tickvals = lineAdjp(),
-
-                      ticktext = c(0.5, 0.25, 0.1, 0.05, 0.025, 0.01, 0.001, 0.0001)
-                      # be careful of changing of lingAdjp()
-
-                    ),
-                    "thr" = list(
-                      title = "Maximal number of false positives",
-                      titlefont = f,
-                      autotick = FALSE,
-                      tickmode = "array",
-                      tickvals = req(thr_yaxis()$pvalue),
-                      ticktext = req(thr_yaxis()$num)
-                    )
+      "pval" = list(
+        title = "p-value (-log[10] scale)",
+        titlefont = f
+      ),
+      "adjPval" = list(
+        title = "Adjusted p-value (-log[10] scale)",
+        titlefont = f,
+        autotick = FALSE,
+        tickmode = "array",
+        tickvals = lineAdjp(),
+        ticktext = c(
+          0.5, 0.25, 0.1, 0.05, 0.025, 0.01, 0.001,
+          0.0001
+        )
+        # be careful of changing of lingAdjp()
+      ),
+      "thr" = list(
+        title = "Maximal number of false positives",
+        titlefont = f,
+        autotick = FALSE,
+        tickmode = "array",
+        tickvals = req(thr_yaxis()$pvalue),
+        ticktext = req(thr_yaxis()$num)
+      )
     )
     return(yaxis)
   })
@@ -1132,18 +1153,15 @@ app_server <- function(input, output, session) {
       size = 14,
       color = "#000000"
     )
-    lte <- "\u2264"
-    gte <- "\u2265"
     p <- plot_ly(data.frame(x = req(logFCVP()), y = req(logpvaluesVP())),
-                 x = ~x, y = ~y,
-                 marker = list(
-                   size = 2,
-                   color = "grey"
-                 ),
-                 name = "unselected",
-                 type = "scattergl", mode = "markers", # make points
-                 source = "A" # name plotly::plot
-
+      x = ~x, y = ~y,
+      marker = list(
+        size = 2,
+        color = "grey"
+      ),
+      name = "unselected",
+      type = "scattergl", mode = "markers", # make points
+      source = "A" # name plotly::plot
     ) %>%
       add_markers(
         x = req(selected_points()$x), y = req(selected_points()$y),
@@ -1157,7 +1175,6 @@ app_server <- function(input, output, session) {
       ) %>%
       layout(
         xaxis = list(title = "Fold change (log scale)", titlefont = f),
-
         yaxis = isolate(yaxis()),
         # isolate is used not to reactive this reactive variable
         # (improve global reactivity : see bellow for the changing of yaxis)
@@ -1167,7 +1184,6 @@ app_server <- function(input, output, session) {
         dragmode = "select", # initialise lasso/box selection by default
         showlegend = FALSE
       ) %>%
-
       event_register("plotly_selecting") %>% # to save point selected by
       # lasso:box selection
 
@@ -1222,11 +1238,9 @@ app_server <- function(input, output, session) {
     {
       input$choiceYaxis # user selection
       yaxis()
-    } # update yaxis values when parameters change (alpha, ...)
-    ,
+    }, # update yaxis values when parameters change (alpha, ...)
     { # when we choose a different y axis
       plotlyProxy("volcanoplotPosteriori", session) %>%
-
         plotlyProxyInvoke("relayout", list(yaxis = yaxis()))
       # relayout to update values
 
@@ -1266,7 +1280,6 @@ app_server <- function(input, output, session) {
 
   # update plotly VP1
   observeEvent(userDTselectPost(), {
-
     if (length(userDTselectPost()) == 1) {
       # if a row is selected (length == 1 because can select only one row)
       plotlyProxy("volcanoplotPosteriori", session) %>%
@@ -1300,6 +1313,7 @@ app_server <- function(input, output, session) {
   ###################
 
   tableCSV <- reactiveVal() # creation of reactive variable
+
 
   # initialize table when data_server() change
   observeEvent(
@@ -1336,14 +1350,12 @@ app_server <- function(input, output, session) {
     vecteur[selectedGenes()$sel12] <- 1
 
     rigthTable <- tableCSV() %>%
-      dplyr::select(-Thresholds_selection)
+      dplyr::select(!c(.data$Thresholds_selection))
     df <- cbind(
-
       data.frame(
         Thresholds_selection = vecteur,
         row.names = req(data_server()$input$geneNames)
       ),
-
       rigthTable
     )
     tableCSV(df)
@@ -1351,6 +1363,7 @@ app_server <- function(input, output, session) {
 
   # When user selected ne gene set from lasso/box [d() activate]
   observeEvent(d(), {
+
     req(data_server()$input$Y)
     req(tableCSV())
     vecteur <- rep(0, dim(data_server()$input$Y)[1])
@@ -1407,12 +1420,9 @@ app_server <- function(input, output, session) {
   # PHB for all gene sets
   tableBoundsGroup <- reactive({
     withProgress(message = "tableBoundsGroup", {
-      T1 <- Sys.time()
       req(thresholds(req(data_server())))
       req(data_server()$input$biologicalFunc)
-
       table <- boundGroup2(req(data_server()))
-      T2 <- Sys.time()
     })
     return(table)
   })
@@ -1431,7 +1441,6 @@ app_server <- function(input, output, session) {
 
   output$downloadPHBTableGroup <- downloadHandler(
     # download csv of user selection
-
     filename = function() {
       tag <- format(Sys.time(), "%Y-%M-%d_%H-%m-%S")
       sprintf("gene-set_bounds_%s.csv", tag)
@@ -1468,24 +1477,20 @@ app_server <- function(input, output, session) {
   output$OutQtableBoundsGroup <- renderUI({
     req(tableBoundsGroup())
     popify(
-
       el = bsButton("QtableBoundsGroup",
-                    label = "",
-                    icon = icon("question"), style = "info",
-                    size = "extra-small"
+        label = "",
+        icon = icon("question"), style = "info",
+        size = "extra-small"
       ),
       title = "Data",
       content = paste(
-
         "This table prints your post-hoc bounds for your gene sets.",
         "For example, the selection called",
         tableBoundsGroup()[1, "Name"],
         "contains at leat",
         tableBoundsGroup()[1, "TP\u2265"],
-
         " true positives (TP) and its False Discovery Proportion (FDP)
         is less than ",
-
         round(tableBoundsGroup()[1, "FDP\u2264"] * 100, 2), "%"
       ),
       trigger = "hover"
@@ -1526,7 +1531,6 @@ app_server <- function(input, output, session) {
     bioFun <- data_server()$input$biologicalFunc
 
     if (inherits(bioFun, "list")) {
-
       ids <- bioFun[[group]]
     } else {
       ids <- which(bioFun[, group] == 1)
@@ -1547,29 +1551,24 @@ app_server <- function(input, output, session) {
       size = 14,
       color = "#000000"
     )
-    lte <- "\u2264"
-    gte <- "\u2265"
 
     plot_ly(data.frame(x = logFCVP(), y = logpvaluesVP()),
-            x = ~x, y = ~y,
-            marker = list(
-              size = 2,
-              color = "grey"
-            ),
-            name = "genes",
-            type = "scattergl", mode = "markers", source = "B",
-            text = data_server()$input$geneNames,
-
-            customdata = paste0(
-              "http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=",
-              data_server()$input$geneNames
-            )
-
+      x = ~x, y = ~y,
+      marker = list(
+        size = 2,
+        color = "grey"
+      ),
+      name = "genes",
+      type = "scattergl", mode = "markers", source = "B",
+      text = data_server()$input$geneNames,
+      customdata = paste0(
+        "http://www.ensembl.org/Homo_sapiens/Gene/Summary?g=",
+        data_server()$input$geneNames
+      )
     ) %>%
       layout(
         showlegend = TRUE,
         xaxis = list(title = "Fold change (log scale)", titlefont = f),
-        # yaxis = isolate(yaxis()),
         title = "",
         dragmode = "select"
       ) %>%
@@ -1586,7 +1585,7 @@ app_server <- function(input, output, session) {
       toWebGL()
   })
 
-  # # output of priori()
+  # output of priori()
   output$volcanoplotPriori <- renderPlotly({
     withProgress(message = "Plot", {
       p <- priori()
@@ -1636,5 +1635,4 @@ app_server <- function(input, output, session) {
         plotlyProxyInvoke("deleteTraces", 1)
     }
   })
-
 }

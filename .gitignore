@@ -1,6 +1,7 @@
 # History files
 .Rhistory
 .Rapp.history
+dev.history.R
 
 # Session Data files
 .RData
@@ -43,3 +44,7 @@ vignettes/*.pdf
 /inst/ShinyApps/GSEABenchmarkeR/gene-set
 /inst/ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set
 /data
+
+.lintr
+inst/doc
+docs

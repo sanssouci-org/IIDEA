@@ -6,11 +6,11 @@
 #' "GSE38666_epithelia")
 #'
 #' @return NULL
-#' @export
 #'
 #' @importFrom GSEABenchmarkeR loadEData maPreproc
 #' @importFrom R.cache memoizedCall
 #' @importFrom EnrichmentBrowser getGenesets
+#' @importFrom SummarizedExperiment assays colData
 load_microarray_datasets <- function(names = c(
   "GSE14762", "GSE15471",
   "GSE18842", "GSE19728",
@@ -18,6 +18,7 @@ load_microarray_datasets <- function(names = c(
   "GSE23878", "GSE7305", "GSE3467",
   "GSE9476", "GSE38666_epithelia"
 )) {
+
   names_possible <- c(
     "GSE14762", "GSE15471",
     "GSE18842", "GSE19728",
@@ -48,22 +49,30 @@ load_microarray_datasets <- function(names = c(
   }
 
 
-  pattern <- "(.*).RDS"
+  pattern <- "(.*) \\((.*)\\).RDS"
   filenames <- list.files(file.path(path, path_express_data), pattern = pattern)
 
-  exist_rds <- gsub(pattern, "\\1", filenames)
+  exist_rds <- gsub(pattern, "\\2", filenames)
   names <- setdiff(names, exist_rds)
 
   data <- R.cache::memoizedCall(GSEABenchmarkeR::loadEData, "geo2kegg")
   for (name in names) {
     print(name)
-    rawData <- R.cache::memoizedCall(maPreproc, data[name])[[1]]
+    rawData <- R.cache::memoizedCall(GSEABenchmarkeR::maPreproc, data[name])[[1]]
+    matrix <- SummarizedExperiment::assays(rawData)$exprs
 
-    saveRDS(rawData,
+    cats <- SummarizedExperiment::colData(rawData)
+    ww <- match(cats$Sample, base::colnames(matrix))
+    categ <- cats$GROUP[ww]
+    colnames(matrix) <- categ
+
+    lID<- paste(rawData@metadata$experimentData@other$disease, " (", (name), ")", sep = "")
+
+    saveRDS(matrix,
       file = file.path(
         path,
         path_express_data,
-        paste(name, ".RDS", sep = "")
+        paste(lID, ".RDS", sep = "")
       )
     )
   }
@@ -96,7 +105,6 @@ load_microarray_datasets <- function(names = c(
 #' "LUSC", "PRAD", "STAD", "UCEC")
 #'
 #' @return NULL
-#' @export
 #'
 #' @importFrom GSEABenchmarkeR loadEData
 #' @importFrom SummarizedExperiment assays colData
@@ -133,10 +141,11 @@ load_bulkRNAseq_datasets <- function(names = c(
     dir.create(file.path(path, path_gene_set))
   }
 
+  # pattern <- "(.*)_\\((.*)\\).RDS"
   pattern <- "(.*).RDS"
   filenames <- list.files(file.path(path, path_express_data), pattern = pattern)
 
-  exist_rds <- gsub(pattern, "\\1", filenames)
+  exist_rds <- gsub(pattern, "\\2", filenames)
   names <- setdiff(names, exist_rds)
 
   data <- R.cache::memoizedCall(GSEABenchmarkeR::loadEData, "tcga")
@@ -146,6 +155,15 @@ load_bulkRNAseq_datasets <- function(names = c(
     ww <- match(cats$sample, base::colnames(matrix))
     categ <- cats$GROUP[ww]
     colnames(matrix) <- categ
+
+    CPM <- matrix / colSums(matrix) * 1e6
+    row_maxs <- matrixStats::rowMaxs(CPM)
+    ww <- which(row_maxs < 10)
+    row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM),
+                                               prob = 0.75
+    )
+    ww <- which(row_quantiles < log(1 + 5))
+    matrix <- log(1 + CPM[-ww, ])
 
     saveRDS(matrix,
       file = file.path(

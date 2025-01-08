@@ -17,7 +17,6 @@
 #' @importFrom stats p.adjust
 #' @importFrom utils zip str write.csv data
 #' @importFrom stringr str_remove_all
-#' @importFrom SummarizedExperiment assays colData
 #' @importFrom dplyr select filter
 #' @importFrom DT renderDT
 #' @import R.cache
@@ -65,13 +64,10 @@ app_server <- function(input, output, session) {
       if (length(filenames) == 0) {
         return(NULL)
       }
-      ldf <- lapply(filenames[2:length(filenames)], readRDS)
-      lID <- sapply(ldf, function(l) {
-        l@metadata$dataId
-      })
-      names(lID) <- paste(sapply(ldf, function(l) {
-        l@metadata$experimentData@other$disease
-      }), " (", (lID), ")", sep = "")
+      pattern <- paste(path_datasets, "/(.*)\\((.*)\\).RDS", sep = "")
+      lID <- gsub(pattern, "\\2", filenames)
+      names(lID) <- gsub(paste(path_datasets, "/(.*).RDS", sep = ""), "\\1", filenames)
+      print(lID)
       return(lID)
     } else if (req(input$choiceTypeData) == "rnaseq") {
       path_datasets <-
@@ -229,21 +225,20 @@ app_server <- function(input, output, session) {
             } else {
               # cleaning data set from GSEA data set
               setProgress(value = 0.4, detail = "GSEA data set ...")
+              print(input$choiceGSEA)
 
               path_datasets <-
                 system.file("ShinyApps/GSEABenchmarkeR/express-data-set",
                   package = "IIDEA"
                 )
-              rawData <- readRDS(paste(path_datasets, input$choiceGSEA,
-                ".RDS",
-                sep = ""
+              print(names(namesExampleFile()[namesExampleFile() == input$choiceGSEA]))
+              matrix <- readRDS(paste(path_datasets,"/",
+                                      names(namesExampleFile()[namesExampleFile() == input$choiceGSEA]),
+                                      ".RDS",
+                                      sep = ""
               ))
 
-              matrix <- assays(rawData)$exprs
-
-              cats <- colData(rawData)
-              ww <- match(cats$Sample, base::colnames(matrix))
-              categ <- cats$GROUP[ww]
+              categ <- colnames(matrix)
               object <- SansSouci(Y = matrix, groups = as.numeric(categ))
               setProgress(value = 0.7, detail = "GSEA data set ...")
 
@@ -257,7 +252,7 @@ app_server <- function(input, output, session) {
               # On a laisse sous forme de liste car on a adapte les fonctions
               # qui en ont besoin. Plus rapide qu'en la transformant en
               # matrice binaire
-              object$bool$url <- rawData@metadata$experimentData@url
+              # object$bool$url <- rawData@metadata$experimentData@url
 
               object$bool$validation <- TRUE
               object$bool$degrade <- FALSE
@@ -319,20 +314,11 @@ app_server <- function(input, output, session) {
                 system.file("ShinyApps/GSEABenchmarkeR/express-RNAseq-data-set",
                   package = "IIDEA"
                 )
-              rawData <- readRDS(paste(path_datasets, input$choiceGSEA, ".RDS",
+              matrix <- readRDS(paste(path_datasets,"/", input$choiceGSEA, ".RDS",
                 sep = ""
               ))
 
-              matrix <- rawData
 
-              CPM <- matrix / colSums(matrix) * 1e6
-              row_maxs <- matrixStats::rowMaxs(CPM)
-              ww <- which(row_maxs < 10)
-              row_quantiles <- matrixStats::rowQuantiles(log(1 + CPM),
-                prob = 0.75
-              )
-              ww <- which(row_quantiles < log(1 + 5))
-              matrix <- log(1 + CPM[-ww, ])
 
               categ <- colnames(matrix)
               object <- SansSouci(Y = matrix, groups = as.numeric(categ))

@@ -1,10 +1,15 @@
 Package: IIDEA
 Title: Interactive Inference for Differential expression analyses
 Version: 0.0.1.0
-Authors@R: 
-    person("Nicolas", "Enjalbert Courrech", , "nicolas.enjalbert-courrech@math.univ-toulouse.fr", role = c("aut", "cre"),
-    person("Pierre", "Neuvial", , "pierre.neuvial@math.cnrs.fr", role = c('aut')))
-Description: What the package does (one paragraph).
+Authors@R: c(
+    person("Nicolas", "Enjalbert Courrech",
+    		 email = "nicolas.enjalbert-courrech@math.univ-toulouse.fr",
+		 role = c("aut", "cre")),
+    person("Pierre", "Neuvial",
+    		 role=c("aut"),
+                 email="pierre.neuvial@math.univ-toulouse.fr",
+                 comment = c(ORCID = "0000-0003-3584-9998")))
+Description:  This is a container package for the IIDEA shiny application, which provides an interactive volcano plot for differential gene expression. By using post hoc methods, IIDEA makes it possible for users to interactively select genes of interest and obtain valid statistical guarantees regarding the number/proportion of true/false positives among these genes.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

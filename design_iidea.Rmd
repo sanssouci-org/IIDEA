@@ -1,0 +1,364 @@
+---
+title: "Intégration de designs expérimentaux complexes dans IIDEA"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    theme: flatly
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(shiny)
+library(DT)
+library(plotly)
+```
+
+#  Objectif du document
+
+Ce document est un **cahier des charges** définissant l'interface utilisateur de l'application **IIDEA** pour intégrer des designs expérimentaux complexes.
+
+##  Contexte
+
+L'application IIDEA permet actuellement l'analyse d'expression différentielle pour la comparaison de deux groupes d’individus :
+
+- Pour les données **microarray**, un **test de Welch** est utilisé.
+- Pour les données **bulk RNAseq**, un **test de Wilcoxon** est appliqué.
+
+L'utilisateur peut déposer une **matrice d'expression** ($D$ gènes $\times$ $n$ individus) et/ou directement une matrice avec **p-values et fold-changes**. Il dispose d’un **volcano plot interactif** (Plotly) pour la sélection, ainsi que d’un **tableau interactif** (DT) pour les bornes post hoc.
+
+##  Objectif de l'évolution
+
+L’objectif est de permettre l’analyse de designs plus complexes via un **modèle linéaire** :
+
+$$
+\mathbb{Y} = \mathbb{X} \beta + \varepsilon
+$$
+
+où $\mathbb{Y}$ est la matrice d'expression ($n$ observations $\times D$ gènes), $\mathbb{X}$ la matrice de design ($n \times p$ variables explicatives), $\beta$ les paramètres ($p \times D$), et $\varepsilon$ un bruit corrélé.
+
+Un test est mené pour chaque gène et chaque contraste :
+
+$$
+\mathcal{H}_0^{j,l}: C_{l.} \beta_{.j} = 0
+$$
+où $C$ est la matrice de contrast ($L$ contrasts $\times p$).
+
+La calibration des bornes post hoc s'appuie sur une méthode **bootstrap** décrite par [Davenport et al., 2022](https://arxiv.org/abs/2208.13724), et disponible via le package **sanssouci**. Voir la vignette associée pour voir l'utilisation du package :
+
+- Définir les matrice Y, X et C. (attention en R, Y est de taille $D \times n$)
+- Définir l'objet `sansSouci` avec ces matrices : `obj <- sansSouci(Y = Y, X = X, Contrast = C)
+- Calibrer la méthode en faisant `fit(obj, alpha = alpha, B = B)`
+- Faire une prédiction sur un ensemble de gènes sélectionnés à partir du résultat de la calibration
+
+---
+
+#  Définir les données utilisées {.tabset}
+
+L'utilisateur doit fournir plusieurs éléments.
+
+Attention dans le cas contraste, il faut que le paramètre du test soit à jour (avec une seule proposition, c'est à dire "linear model" ou le nom du test).
+
+### Type de données (déjà existant) et Type de modélisation
+
+**Type de données** : existe déjà. Pas besoin de le modifier.
+
+**Type de modélisation** : Cette sélection permet de 1) simplifier l'affichage pour l'utilisateur dans le cadre 2samples et 2) être sûr de ce qu'il veut faire (et permettre une cohérence explicite des inputs)
+
+Ici proposition par radioButtons mais un menu déroulant serait peut etre plus judicieux ? 
+
+```{r}
+fluidRow(
+  column(6,
+         selectInput("data_type", "Type de données :", 
+                     choices = c("microarray", "bulk RNAseq"))
+  ),
+  column(6,
+         radioButtons("model_type", "Modélisation :", 
+                      choices = c("2 samples", "Linear model"))
+  )
+)
+```
+
+## Jeux de données utilsateur
+
+### Matrice d'expression (déjà existant)
+
+```{r}
+fileInput("expr_data", "Charger la matrice d'expression (.csv)", accept = ".csv")
+```
+
+La matrice contient les gènes en lignes, les individus en colonnes. En two-sample test, les colonnes doivent indiquer le groupe (0/1). En modèle linéaire, les noms d’individus permettent d’associer la matrice de design.
+
+
+### Matrice de design (conditionnellement au choix de modèle linéaire)
+
+```{r}
+conditionalPanel(
+  condition = "input.model_type == 'Linear model'",
+  fileInput("design_matrix", "Matrice de design (.csv)", accept = ".csv")
+)
+```
+
+La matrice de design a les individus en lignes (nommés par un identifiant pour vérifier les jontures), variables explicatives en colonnes (nommés aussi pour l'affichage).
+
+### Matrice de contrastes (ici aussi conditionnellement au choix de modèle linéaire)
+
+Nous souhaitons ici avoir une matrice de taille $L \times p$ où les lignes sont nommés par un identifiant de contrast et les colonnes par le noms des variables (les mêmes que dans X et dans le même ordres, le nom permettant de remettre dans l'ordre si besoin).
+Deux options possibles :
+
+#### 1. Importer un fichier
+
+```{r}
+fileInput("contrast_matrix_file", "Charger une matrice de contrastes (.csv)", accept = ".csv")
+```
+
+
+#### 2. Édition interactive
+
+```{r}
+contrast_data <- reactiveVal(data.frame(Varialbe1 = rep(0, 1), Variable2 = 0))
+output$contrast_table <- renderDT({
+  datatable(contrast_data(), editable = TRUE, rownames = TRUE)
+})
+
+output$add_row <- renderUI({
+  actionButton("add_row", "Ajouter un contraste")
+})
+
+observeEvent(input$add_row, {
+  df <- contrast_data()
+  new_row <- setNames(as.list(rep(0, ncol(df))), names(df))
+  df <- rbind(df, new_row)
+  rownames(df)[nrow(df)] <- paste0("Contrast", nrow(df))
+  contrast_data(df)
+})
+
+output$edit_contrast <- renderUI({
+  tagList(
+    DTOutput("contrast_table"),
+    uiOutput("add_row")
+  )
+})
+
+conditionalPanel(
+  condition = "input.model_type == 'Linear model'",
+  uiOutput("edit_contrast")
+)
+```
+
+### Matrice p-values / Fold Change
+
+Cette feature est déjà existante
+
+```{r}
+fileInput("pv_fc_matrix", "Matrice p-values / Fold Change (.csv)", accept = ".csv")
+```
+
+Attention ici, la matrice doit contenir autant de lignes que $L \times D$, c’est-à-dire un test par contraste et par gène.
+Cette feature n'a peut etre pas de sens ici. 
+
+### Gene sets pour enrichissement
+
+```{r}
+fileInput("gene_sets", "Charger les gene sets (.csv)", accept = ".csv")
+```
+Attention ici voir comment s'interpréte les gènes sets dans le cadre contrast multiple. 
+
+
+##  Utilisation de jeux de données publics 
+
+Dans la sélection du jeux de données [Choose a gene data set] proposer un jeu de données spécifiant "Linear model"
+
+Lors que ce type de jeux de données est sélectionné, on peut dans un premier temps décrire les variables prises en compte (mettre ici pas plus de 5 variables) et dire deux variables qui sont testé (le coefficient de la variable est nul). 
+Dans un deuxième temps, nous pourrons laisser le choxi à l'utilisateur de construire son modèle linéaire et le contrast. 
+
+Jeux de données utilisable: 
+
+- **bulk RNAseq** <span style="color: red;">Trouver un jeu de données d'exemple</span>
+- **microarray** utiliser le jeux de données de [Davenport et al., 2022](https://arxiv.org/abs/2208.13724). Mettre comme variable : age_enroll, ats_packyears, bmi, fev1_fvc_utah, gender, parentalcopd. Tester ats_packyears et fev1_fvc_utah
+
+
+```{r}
+library(sanssouci.data)
+
+data("expr_COPD", package = "sanssouci.data")
+Y <- expr_COPD
+data("expr_COPD_design", package = "sanssouci.data")
+X <- expr_COPD_design
+X[, "intercept"] <- 1
+
+X <- X[, c("age_enroll", "ats_packyears", "bmi", "fev1_fvc_utah", "gender", "parentalcopd", "intercept")]
+C <- matrix(0, nrow = 2, ncol = ncol(X))
+colnames(C) <- colnames(X)
+rownames(C) <- c("age_enroll", "fev1_fvc_utah")
+C["age_enroll", "age_enroll"] <- 1
+C["fev1_fvc_utah", "fev1_fvc_utah"] <- 1
+
+print(dim(Y))
+print(head(X))
+print(C)
+```
+
+```{r}
+library(sanssouci)
+obj <- SansSouci(Y, X = as.matrix(X), Contrast = C)
+res <- fit(obj, alpha = 0.1, B = 100)
+predict(res, contrast_name = "fev1_fvc_utah")
+```
+
+
+
+---
+
+# Visualisation et sélection via Volcano Plot
+
+## Cas : un seul contraste
+
+Pas de changement par rapport à l’existant. 
+La fonction prédict a été changée mais s'il n'y a pas de contrast manuel alors elle fonctionne. (`contrast_name = NULL` par défaut)
+Il semblerait qu'il n'y ait rien à changer dans le code. 
+
+## Cas : plusieurs contrastes
+
+Lorsque plusieurs contrastes sont testés simultanément, il devient important de pouvoir identifier à quel contraste appartient chaque p-valeur affichée ou sélectionnée dans le volcano plot. Deux approches principales peuvent être envisagées :
+
+1. **Affichage simultané de tous les contrastes avec une légende** :  
+   Chaque contraste pourrait être représenté par une forme distincte, identifiable via une légende. Grâce aux fonctionnalités interactives de Plotly, il serait possible de filtrer dynamiquement les points visibles selon les contrastes sélectionnés. Toutefois, cette approche présente plusieurs limitations:
+   - La surcharge visuelle due au grand nombre de points peut nuire à la lisibilité.
+   - L'interaction devient lente ou confuse lorsque trop de données sont affichées.
+   - La sélection de points dans Plotly ne distingue pas toujours entre les points visibles et ceux masqués, rendant la sélection ambigüe / difficile pour le développeur.
+   - Pas d'intérêt biologique.
+   
+   Pour ces raisons, cette option n’est **pas retenue à ce stade**.
+
+2. **Affichage d’un seul contraste à la fois** (**option retenue**) :  
+   Un menu déroulant situé au-dessus du volcano plot permettrait à l’utilisateur de choisir un contraste parmi ceux définis. Seuls les points correspondant à ce contraste seraient alors affichés. Cette solution offre plusieurs avantages :
+   - Une **bonne lisibilité**, en réduisant la densité de points.
+   - Une **sélection simple et directe** via Plotly.
+   - La **validité statistique** est assurée grâce aux bornes post hoc calibrées simultanément pour tous les contrastes : chaque sélection, même effectuée sur un contraste à la fois, respecte le contrôle du FDP global.
+   
+Ici, la sélection se fait sur un seul contrast. On n'a pas d'intérêt à regarder la guarantie d'un ensemble de point venant de plusieurs contrastes. 
+
+Cette dernière approche est donc celle qui sera privilégiée dans la version initiale de l’interface.
+
+
+### Choix du contraste à visualiser
+
+```{r}
+selectInput("contrast_choice", "Contraste à visualiser :", choices = res$input$contrast_name, selected = res$input$contrast_name[1])
+```
+
+### Volcano Plot dynamique
+
+```{r}
+renderPlot({
+  volcanoPlot(res, contrast_name = input$contrast_choice, 
+              q = 0.1, r = 0.02, ylim = c(0, 8))
+})
+```
+
+
+
+```{r, eval = FALSE}
+renderPlotly({
+  plot_ly(
+    x = pValues(res)[input$contrast_choice, ],
+    y = foldChanges(res)[input$contrast_choice,],
+    type = "scatter",
+    mode = "markers",
+    text = paste("Gène", 1:1000),
+    marker = list(color = 'rgba(152, 0, 0, .8)', size = 8)
+  ) %>% layout(title = paste("Volcano Plot -", input$contrast_choice))
+})
+```
+
+---
+
+# Table des bornes post hoc
+
+## Pour le multicontrast
+
+Avoir plusieurs contrastes entraîne un ajustement de la table interactive des bornes post hoc :  
+
+
+Avoir plusieurs contrastes entraîne un ajustement de la table intéractive des bornes post hoc. L'idée est de n'afficher dans cette liste que les bornes qui correspondent au contrast étudié. 
+➡️ **Il est nécessaire d’ajouter une colonne indiquant le contraste utilisé** pour chaque sélection. Cela permettra de faire facilement la sélection des 
+```{r}
+selectInput("contrast_choice2", "Contraste à visualiser :", choices = res$input$contrast_name, selected = res$input$contrast_name[1])
+```
+
+
+```{r}
+#Création d'une table de bornes post hoc
+ df <- data.frame(
+      `Selection` = c("Threshold selection", "Threshold selection", "Selection 1", "Selection 1", "Selection 2", "Selection 2"),
+      "# genes" = c(53, 38, 389, 39, 309, 37),
+      "TP\u2265" = as.integer(c(53,21,252,20,210,10)),
+      "FDP\u2264" = c(round(c(1-53/53, 1-21/38,1-252/389,
+                              1-20/39,1-210/309,1-10/37), 2)),
+      "contrast" = c(rep(res$input$contrast_name, 3)),
+      check.names = FALSE, row.names = NULL
+    )
+```
+
+```{r}
+## table intéractive
+renderDT(
+    {
+      df[df$contrast == input$contrast_choice2, 
+         names(df) != "contrast"]
+    },
+    selection = list(mode = "single", selectable = -(1))
+    # can select only one row and not the first one
+
+    ,
+    escape = FALSE # to print url link to open stringDB graph
+  )
+```
+
+
+
+
+---
+
+## Autres améliorations de la table (indépendant du modèle linéaire)
+
+Plusieurs fonctionnalités supplémentaires sont envisagées pour enrichir l’interactivité et améliorer l'expérience utilisateur :
+
+- **Suppression individuelle des sélections**  
+  L'utilisateur pourrait supprimer une ligne spécifique de la table correspondant à une sélection précédente. Cela permettrait de nettoyer ou d’ajuster dynamiquement l’historique des sélections sans devoir relancer toute l’analyse.
+
+- **Affinage d’une sélection par seuils personnalisés** 
+La selection par seuil se fait intéractivement. Dès qu'un seuil est modifié nous n'avons pas trace d'une sélection précédente d'intérêt. L'idée de sauvegarde sur demande permettrait de garder ces sélections. Une fois les nouveaux seuils définis, l’utilisateur aurait la possibilité de valider cette nouvelle sélection et de l’**ajouter comme une nouvelle ligne** dans la table, contenant :
+  - Le contraste utilisé
+  - Les seuils appliqués (p-valeur et fold change)
+  - Le nombre de gènes sélectionnés 
+  - Les bornes post hoc
+
+---
+
+# Note sur l'implémentation envisagée
+
+Dans un premier temps, les deux cas "two samples" et "linear model" vont co-exister. 
+On garde la version standard (1grp vs 1grp) avec l'implémentation actuelle. Les méthodes SansSouci marche dans les deux cas selon comment est défini l'objet. Ainsi la transformation principale sera de bien définir l'objet. La calibration se fera facilement, il faudra faire attention au test proposé (forcement NULL en modèle linéaire pour l'instant). 
+
+Pour tracer le volcano plot, il faut choisir un contrast. Dans les deux cas, les pvaleurs / foldchanges sont nommés selon le contraste testé (même dans le cas two samples). Dans ce cas, c'est une matrice avec une seule ligne nommé. Dans ce cas là, il n'y a pas besoin de demander le nom du contraste à l'utilisateur mais pour être général/garder la même structure, il faut qu'il y ait une sélection -> prendre l'unique ligne de la matrice. 
+
+La sélection du contrast permet d'afficher un volcano plot différent et adapter la table des bornes post hoc. 
+Afficher un volcano plot différent est obligatoire ici car les points ne sont pas à la même place et en mettre trop rend l'application difficile d'utilisation. La calibration sera faite une seule fois donc on gagne du temps dessus. 
+
+Il faut faire attention à la sélection des points qui se fait sur le volcano plot. Dans le cadre multicontrast il faut faire correspondre ses points dans la matrice des pvaleurs. La fonction predict prend en compte le nom du contrast et ainsi il faut donner l'indicateur du point sélectionner allant de 1 à D (et non D * L). Il faut faire attention à cette implémentation. 
+
+Dans le cadre où l'utilisateur veut sauvegarder les points sélectionnés, je n'ai pas de solution pour l'instant. Le système actuel est une matrice avec en ligne tous les points et en colonnes les sélections. Une solution serait de proposé un système équivalent mais en faisant une matrice par contrast ? ou spécifiant chaque contrast en haut de la colonne ? 
+
+
+
+---
+
+#  Conclusion
+
+- L’approche par modèle linéaire permet plus de flexibilité.
+- La sélection post hoc est rendue valide grâce à la calibration bootstrap (package `sanssouci`).
+- Le présent document sert à guider le développement de cette extension dans IIDEA.
+

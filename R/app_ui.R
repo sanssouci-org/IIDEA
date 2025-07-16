@@ -81,6 +81,64 @@ app_ui <- function() {
         ),
         conditionalPanel(
           condition = "!input.checkboxDemo",
+          selectInput("model_type",
+                       "Modelisation:",
+                       choices = c("2 samples" = "twoSamples",
+                                   "Linear model" = "linearModel")),
+          conditionalPanel("input.model_type == 'linearModel'",
+                           fileInput("design_matrix",
+                                     label = p("Design matrix",
+                                       bsButton("QdesignData",
+                                                label = "",
+                                                icon = icon("question"),
+                                                style = "info",
+                                                size = "extra-small"
+                                       ),
+                                       actionButton(
+                                         "resetInputData",
+                                         icon("trash")
+                                       )
+                                     ),
+                                     accept = ".csv"
+                           ),
+                           bsTooltip("QdesignData",
+                                     "Upload a CSV file containing design matrix
+                                     with $n$ observations in rows and $p$
+                                     variables in columns. Row and column names
+                                     must be named.",
+                                     "right",
+                                     options = list(container = "body"),
+                                     trigger = "hover"
+                           ),
+                           fileInput("contrast_matrix_file",
+                                     label = p("Contrast matrix",
+                                               bsButton("QcontrastData",
+                                                        label = "",
+                                                        icon = icon("question"),
+                                                        style = "info",
+                                                        size = "extra-small"
+                                               ),
+                                               actionButton(
+                                                 "resetInputData",
+                                                 icon("trash")
+                                               )
+                                     ),
+                                     accept = ".csv"
+                           ),
+                           bsTooltip("QcontrastData",
+                                     "Upload a CSV file containing contrast matrix
+                                     with $L$ tested contrasts in rows and $p$
+                                     variables in columns. Row and column names
+                                     must be named. Columns must have same names
+                                     as design matrix.",
+                                     "right",
+                                     options = list(container = "body"),
+                                     trigger = "hover"
+                           )
+                           )
+        ),
+        conditionalPanel(
+          condition = "!input.checkboxDemo",
           fileInput("fileLightData",
             label = p(
               "External p-values and log Fold Change matrix",
